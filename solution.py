@@ -105,7 +105,7 @@ class Cfg:
     w_bce:   float = 0.3
     w_dice:  float = 0.3
     w_cld:   float = 0.4
-    w_spine: float = 0.2
+    w_spine: float = 0.0
     # inference / post-processing
     tta:          bool = True
     window:       int = 1024
@@ -183,11 +183,9 @@ class FilamentDataset(torch.utils.data.Dataset):
         img = np.asarray(Image.open(Path(self.cfg.data_dir) / "train_images" / info["file_name"]),
                          dtype=np.float32) / 255.0
         m = np.zeros((h, w), bool)
-        d = np.full((h, w), 1e4, np.float32)
+        d = np.zeros((h, w), np.float32)
         for ann in self.coco.loadAnns(self.coco.getAnnIds(imgIds=img_id)):
             m |= polygon_to_mask(ann, h, w)
-            d = np.minimum(d, spine_to_distmap(ann, h, w))
-        d = np.log1p(d) / 7.0                          # squash tail to ~[0, 1]
         if len(self._cache) > 16:                      # bound RAM (2048^2 floats)
             self._cache.clear()
         self._cache[img_id] = (img, m, d)
@@ -356,8 +354,9 @@ def criterion(model, x, y, sd, vm, cfg: Cfg):
     bce = (F.binary_cross_entropy_with_logits(logits, y, reduction="none") * vm).sum() / n
     loss = (cfg.w_bce * bce
             + cfg.w_dice * soft_dice(prob, y, vm)
-            + cfg.w_cld * soft_cldice(prob, y, vm)
-            + cfg.w_spine * F.mse_loss(spn * vm, sd * vm))
+            + cfg.w_cld * soft_cldice(prob, y, vm))
+    if cfg.w_spine:
+        loss = loss + cfg.w_spine * F.mse_loss(spn * vm, sd * vm)
     return loss, prob
 
 
@@ -456,8 +455,10 @@ def predict_full(models, img, cfg: Cfg) -> np.ndarray:
         tta = [lambda t: t, lambda t: t.flip(-1), lambda t: t.flip(-2), lambda t: t.flip(-1).flip(-2),
                lambda t: t.transpose(-1, -2), lambda t: t.transpose(-1, -2).flip(-1),
                lambda t: t.transpose(-1, -2).flip(-2), lambda t: t.transpose(-1, -2).flip(-1).flip(-2)]
-    for y0 in range(0, H - w + 1, s):
-        for x0 in range(0, W - w + 1, s):
+    y_starts = sorted(set(range(0, max(H - w, 0) + 1, s)) | {max(H - w, 0)})
+    x_starts = sorted(set(range(0, max(W - w, 0) + 1, s)) | {max(W - w, 0)})
+    for y0 in y_starts:
+        for x0 in x_starts:
             tile = torch.from_numpy(img[y0:y0 + w, x0:x0 + w][None, None]).to(cfg.device)
             acc = 0.0
             for tf in tta:
@@ -589,6 +590,11 @@ def mask_to_rle(mask: np.ndarray) -> str:
 
 
 def submit(cfg: Cfg, ckpts):
+    if not ckpts:
+        raise FileNotFoundError(
+            f"No checkpoints supplied. Train final folds first or pass --ckpts explicitly; "
+            f"searched work directory: {cfg.work_dir}"
+        )
     models = []
     for c in ckpts:
         m = FilamentUNet(cfg).to(cfg.device)
@@ -647,6 +653,9 @@ def main():
         tune(cfg)
     elif a.cmd == "submit":
         ckpts = a.ckpts or [f"{cfg.work_dir}/fold{cfg.fold}.pt"]
+        missing = [c for c in ckpts if not Path(c).exists()]
+        if missing:
+            raise FileNotFoundError(f"Checkpoint(s) not found: {missing}")
         submit(cfg, ckpts)
 
 
