@@ -1,5 +1,7 @@
 # Solar Filament Segmentation Challenge 2026
 
+Used Codex GPT 6 Astra to assist me in this work.
+
 Instance segmentation of solar filaments in GONG H-alpha images from MAGFiLO v1.0, developed for the [Solar Filament Segmentation Challenge 2026](https://www.kaggle.com/competitions/filament-segmentation-2026).
 
 The pipeline trains a U-Net, separates predicted filaments into instances, evaluates **Panoptic Quality (PQ)**, and exports an RLE submission CSV. The notebook presents a paired experiment on post-processing and training changes.
