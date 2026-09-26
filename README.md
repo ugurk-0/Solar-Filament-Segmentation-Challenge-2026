@@ -4,9 +4,21 @@ Instance segmentation of solar filaments in GONG H-alpha images from MAGFiLO v1.
 
 The pipeline trains a U-Net, separates predicted filaments into instances, evaluates **Panoptic Quality (PQ)**, and exports an RLE submission CSV. The notebook presents a paired experiment on post-processing and training changes.
 
-**Status:** work in progress. Source code, a presentation notebook, regression tests, and a draft technical report are available. Datasets, trained checkpoints, and generated experiment outputs are not included. No final leaderboard score or completed ablation study is reported here.
+**Status:** one fold-1 post-processing calibration, one four-epoch warm-start run, an independent paired assessment, and a three-epoch PQ-guided follow-up are complete locally. The selected local checkpoint is the first epoch of the four-epoch run. Test inference/submission and multi-fold confirmation remain pending. No leaderboard score or completed ablation study is reported here. See the [dated experiment report](reports/pq_experiment_20260926.md) for measured results and limitations.
 
 ## Repository contents
+
+For the folder map, see [repository organization](docs/REPOSITORY.md).
+For Kaggle, follow the [upload guide](kaggle/README.md). To produce the portable
+notebook after installing dependencies:
+
+```bash
+python scripts/build_kaggle.py
+```
+
+Upload `dist/kaggle/filament-kaggle.ipynb`. It contains the current pipeline source
+and configurable training, evaluation, tuning, and submission stages.
+The local Windows checkout also supports [automatic GitHub sync](docs/AUTO_SYNC.md).
 
 | File | Purpose |
 |---|---|
@@ -18,6 +30,7 @@ The pipeline trains a U-Net, separates predicted filaments into instances, evalu
 | [requirements.txt](requirements.txt) | Pinned Python dependencies |
 | [tests/test_solution_regressions.py](tests/test_solution_regressions.py) | Metric, mask, TTA, inference, and training regression checks |
 | [main.tex](main.tex) | Draft technical report; quantitative conclusions remain provisional |
+| [reports/pq_experiment_20260926.md](reports/pq_experiment_20260926.md) | Completed local experiment, stage status, metrics, commands, and checkpoint decision |
 | [.github/workflows/tests.yml](.github/workflows/tests.yml) | Regression tests on pushes and pull requests |
 
 ## Setup and data
@@ -133,10 +146,24 @@ The implementation returns zero when no instances match, including empty predict
 ## Validation and results
 
 ```bash
-python -m pytest tests/test_solution_regressions.py -q
+python -m pytest tests -q
 ```
 
-The publication check passed **12 regression tests**. The notebook passed format validation and contains no saved outputs. Those checks do not establish training quality or a competition score.
+The publication check passed **15 tests**, including portable Kaggle export and notebook-output filtering. The research notebook was executed locally with saved stage tables, learning curves, and prediction overlays; Git strips those outputs from the published copy while preserving them on disk. The generated Kaggle notebook's setup cells were executed locally with expensive stages disabled; it has not yet been run on Kaggle. These checks and local measurements do not establish a competition score.
+
+### Local fold-1 experiment completed 26 September 2026
+
+The calibration split selected connected components with probability threshold `0.65` and minimum area `200`. On the separate 85-observation assessment subset:
+
+| Checkpoint and inference | Mean image PQ | Dataset PQ | TP | FP | FN |
+|---|---:|---:|---:|---:|---:|
+| Original checkpoint, watershed 0.50/50 | 0.0706 | 0.0706 | 172 | 2,099 | 476 |
+| Original checkpoint, calibrated components 0.65/200 | 0.2073 | 0.2177 | 319 | 851 | 329 |
+| Four-epoch run best checkpoint, calibrated components 0.65/200 | **0.2454** | **0.2511** | 322 | 671 | 326 |
+
+The calibrated converter improved paired mean PQ by `+0.1368` (observation-bootstrap 95% CI `+0.1199` to `+0.1533`). Fine-tuning added `+0.0380` (95% CI `+0.0195` to `+0.0575`). The combined change was `+0.1748` (95% CI `+0.1509` to `+0.1985`). These intervals are conditional on one split, one seed, and the selected checkpoint.
+
+The three-epoch follow-up used the calibrated converter during every monitoring pass and a lower learning rate. Its mean monitor PQ values were `0.2930`, `0.2901`, and `0.2864`, all below the starting checkpoint's like-for-like calibrated monitor PQ of `0.3028`. It was therefore rejected; the four-epoch run's `fold1_best.pt` remains selected. Detailed per-stage status, commands, artifacts, and caveats are in the [experiment report](reports/pq_experiment_20260926.md).
 
 `eval` writes `evaluation_foldF.json` with aggregate and per-image results: PQ/SQ/RQ, pixel and matched-instance overlap metrics, TP/FP/FN, fragmentation and merging counts, and timing. The paired experiment additionally writes calibration and comparison reports under its configured output directory.
 
