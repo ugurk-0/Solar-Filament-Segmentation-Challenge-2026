@@ -1,0 +1,18 @@
+# Competition data and generated experiment outputs
+MAGFiLO_1.0_Kaggle_2026/
+runs/
+*.pt
+*.ckpt
+*.log
+
+# Python and notebook caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Local environments and editor state
+.venv/
+venv/
+.env
+.vscode/

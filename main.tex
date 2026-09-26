@@ -1,0 +1,94 @@
+% Solar Filament Segmentation Challenge 2026 — Technical Report (4 pages)
+% Paste this into the competition's Overleaf template; content fits ~4 pages.
+\documentclass[10pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{graphicx, booktabs, amsmath, hyperref}
+\title{Attention-Gated U-Net with Skeleton-Aware Loss for\\
+Solar Filament Segmentation (Panoptic Quality Optimisation)}
+\author{Team Name}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We address the Solar Filament Segmentation Challenge 2026 (MAGFiLO v1.0, GONG
+H-$\alpha$ observations, 2048$\times$2048 px) under the Panoptic Quality (PQ)
+metric. Our solution combines: (i) an anti-leakage GroupKFold protocol keyed on
+physical observation names, since the same image is independently annotated by
+2--3 annotators; (ii) a timm-encoder U-Net with additive attention gates and a
+zero-initialised dilated bottleneck; (iii) a BCE + soft-Dice + soft-clDice loss
+that penalises fragmented thin structures while using segmentation masks only
+for training; (iv) sliding-window inference with 8-way dihedral TTA and fold
+ensembling; (v) distance-transform watershed instance separation with
+GT-style post-processing (hole filling, single connected piece, small-object
+suppression) and post-processing parameters tuned directly on local PQ.
+This report is a draft; quantitative comparisons remain to be completed.
+\end{abstract}
+
+\section{Task and Data Analysis}
+Filaments are thin dark structures (mean $\approx$2\,k px area inside
+$\approx$16\,k px bounding boxes) on full-disk H-$\alpha$ images. Three dataset
+properties drive our design: (1) duplicated observations (same physical image,
+2--3 independent annotator sets; COCO ids differ only by a batch prefix);
+(2) the $\pm70^{\circ}$ central-meridian annotation limit; (3) inter-annotator
+agreement $\kappa=0.66$, i.e.\ instance definition (one filament vs.\ several
+pieces) is itself noisy, so post-merging/splitting behaviour must be controlled.
+
+\section{Method}
+\subsection{Model}
+U-Net over a timm \texttt{features\_only} encoder (ResNet-18 default), additive
+attention gates on skip connections~\cite{oktay2018}, and a residual dilated
+bottleneck ($d\!=\!1,2,4$; GroupNorm scale zero-initialised so training starts
+from the plain-U-Net function). The segmentation head is trained from polygon masks;
+other ground-truth metadata is not used as a training target.
+
+\subsection{Loss}
+$\mathcal{L} = 0.3\,\mathrm{BCE} + 0.3\,\mathrm{softDice} + 0.4\,(1-\mathrm{clDice})$,
+all terms masked to the annotated limb region. Soft-clDice~\cite{shit2021} compares differentiable skeletons and
+penalises filament fragmentation invisible to Dice.
+
+\subsection{Training}
+Filament-centred 768$\times$768 crops (75\%), dihedral augmentations
+(flips/rot90 are physically valid), photometric jitter, AMP, AdamW +
+cosine schedule, weight EMA.
+
+\subsection{Inference and Post-processing}
+Overlap-add sliding window (1024 px, 256 overlap) with 8-way dihedral TTA;
+probability maps averaged over folds. Instances via thresholding and connected
+components by default, with optional EDT watershed, then cleanup: hole filling,
+largest connected component, $\geq$50 px. Threshold, watershed distance and
+min-area are grid-tuned on the held-out fold using a local PQ implementation.
+
+\section{Experiments}
+GroupKFold ($k{=}5$) keyed on observation names; validation uses one annotation
+set per image and is scored with local PQ (greedy IoU matching @ 0.5).
+Ablation (fold 0, local PQ): \emph{fill in table}.
+\begin{center}\small
+\begin{tabular}{@{}lc@{}}
+\toprule
+variant & local PQ \\
+\midrule
+U-Net, BCE+Dice & -- \\
++ clDice mask loss & -- \\
++ attention gates + dilated bottleneck & -- \\
++ TTA + fold ensemble + PQ-tuned post-proc & -- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Conclusion}
+We hypothesise that skeleton-aware losses and instance-aware post-processing
+improve PQ on thin solar structures. Controlled ablations are still required
+to measure their contributions and compare them with architecture changes.
+
+\begin{thebibliography}{9}
+\bibitem{oktay2018} Oktay et al., ``Attention U-Net'', MICCAI 2018.
+\bibitem{shit2021} Shit et al., ``clDice -- a Novel Connectivity-Preserving Loss
+Function for Deep Learning on Tubular Structures'', CVPR 2021.
+\bibitem{ahmadzadeh2024} Ahmadzadeh et al., ``A dataset of manually annotated
+filaments from H-alpha observations'', \emph{Sci.\ Data}, 2024.
+\bibitem{kirillov2019} Kirillov et al., ``Panoptic Segmentation'', CVPR 2019.
+\end{thebibliography}
+
+\end{document}
