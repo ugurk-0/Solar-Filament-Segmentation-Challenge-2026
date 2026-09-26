@@ -31,7 +31,7 @@ import sys, json, importlib
 from pathlib import Path
 import pandas as pd
 import torch
-from IPython.display import display, Image, FileLink
+from IPython.display import display, Image, FileLink, clear_output
 import solution
 import pq_experiment
 importlib.reload(solution)
@@ -49,9 +49,25 @@ RUN_TRAINING = False
 RUN_CALIBRATION = False
 RUN_ASSESSMENT = False
 RUN_SUBMISSION = False
+LIVE_WATCH_MINUTES = 0  # set to e.g. 30 and rerun the training-status cell
 print("Python:", sys.executable, "Torch:", torch.__version__, "CUDA:", torch.cuda.is_available())
 print("Model selection: mean PQ on fixed monitor, no TTA")
 print("Annotation support fraction:", solution.build_limb_mask(CFG).mean())
+stage_paths = {
+    "Data audit": RUN_ROOT / "data_audit.json",
+    "Smoke training": RUN_ROOT / "smoke" / "history.json",
+    "Round 1 training": RUN_ROOT / "training" / "history.json",
+    "Calibration": RUN_ROOT / "baseline" / "selected_postproc.json",
+    "Independent baseline assessment": RUN_ROOT / "baseline" / "audit.json",
+    "Independent trained assessment": RUN_ROOT / "comparison" / "audit.json",
+    "Round 2 guided training": RUN_ROOT / "training_round2" / "history.json",
+    "Round 3 FP-focused training": RUN_ROOT / "training_round3" / "history.json",
+    "Test inference/submission": RUN_ROOT / "submission" / "submission_manifest.json",
+}
+display(pd.DataFrame([
+    {"stage": name, "status": "complete" if path.exists() else "pending", "artifact": str(path)}
+    for name, path in stage_paths.items()
+]))
 ''')
     md(r"""## Data and mathematical checks
 
@@ -72,28 +88,64 @@ else:
 ''')
     md("""## Training with real validation and instance previews
 
-This run warm-starts the **same-fold** 60-epoch EMA checkpoint, with a fresh optimizer,
-four additional full-data epochs, corrected mask losses and crop sampling. It is not a
-from-scratch ablation of individual fixes. EMA decay is 0.9 for this short fine-tuning run.
-`fold1_best.pt` is selected by measured monitor PQ; `fold1.pt` is the final epoch.
+Round 1 warm-starts the **same-fold** 60-epoch EMA checkpoint for four epochs. Round 2
+starts from round 1's best checkpoint for three lower-learning-rate epochs and evaluates
+every epoch with the frozen calibrated converter (`components`, threshold 0.65,
+minimum area 200). Both use the same 16 physical observations for monitoring.
+
+The cell below displays every completed epoch's learning curve and prediction overlays.
+While training is active, set `LIVE_WATCH_MINUTES` above and rerun it to refresh every
+30 seconds. Training runs in a separate process, so closing the notebook does not stop it.
 """)
     code('''
-def on_epoch(epoch, checkpoint):
-    print(f"Completed epoch {epoch}; displaying actual validation artifacts")
-    display(Image(filename=str(Path(CFG.work_dir) / "learning_curves.png")))
-    for path in sorted((Path(CFG.work_dir) / "previews").glob(f"epoch{epoch:03d}_*.png")):
-        display(Image(filename=str(path)))
+import time
 
-if RUN_TRAINING:
-    solution.train(CFG, epoch_callback=on_epoch)
-else:
-    print("Displaying saved run. Set RUN_TRAINING=True and use a new work_dir to train again.")
-history_path = Path(CFG.work_dir) / "history.json"
-if history_path.exists():
+def show_training_run(run_dir, label):
+    run_dir = Path(run_dir)
+    print(f"{label}: {run_dir}")
+    progress = run_dir / "training_progress.log"
+    if progress.exists():
+        print(progress.read_text())
+    history_path = run_dir / "history.json"
+    if not history_path.exists():
+        print("No completed epoch yet.")
+        return
     history = json.loads(history_path.read_text())
     display(pd.DataFrame(history)[["epoch", "loss", "pq", "lr", "elapsed_seconds"]])
-    on_epoch(history[-1]["epoch"], None)
-    display(FileLink(str(Path(CFG.work_dir) / "dashboard.html")))
+    curves = run_dir / "learning_curves.png"
+    if curves.exists(): display(Image(filename=str(curves)))
+    for epoch in [row["epoch"] for row in history]:
+        print(f"Prediction overlays: epoch {epoch}")
+        for path in sorted((run_dir / "previews").glob(f"epoch{epoch:03d}_*.png")):
+            display(Image(filename=str(path)))
+    dashboard = run_dir / "dashboard.html"
+    if dashboard.exists(): display(FileLink(str(dashboard)))
+
+def show_all_training():
+    show_training_run(RUN_ROOT / "training", "Round 1")
+    show_training_run(RUN_ROOT / "training_round2", "Round 2 (live/current)")
+    show_training_run(RUN_ROOT / "training_round3", "Round 3 (live/current)")
+    comparison = RUN_ROOT / "comparison" / "full_fold.json"
+    split_path = RUN_ROOT / "training" / "split.json"
+    if comparison.exists() and split_path.exists():
+        rows = json.loads(comparison.read_text())["rows"]
+        monitor = set(json.loads(split_path.read_text())["monitor_ids"])
+        starting_pq = sum(r["pq"] for r in rows if r["image_id"] in monitor) / len(monitor)
+        print(f"Round-2 starting checkpoint, calibrated monitor PQ: {starting_pq:.4f}")
+        print("Keep round 1 unless a round-2 epoch exceeds this value.")
+
+if RUN_TRAINING:
+    solution.train(CFG)
+else:
+    print("Displaying saved/live runs. Training is currently launched by run_training_round2.py.")
+
+deadline = time.time() + LIVE_WATCH_MINUTES * 60
+while True:
+    clear_output(wait=True)
+    show_all_training()
+    if LIVE_WATCH_MINUTES <= 0 or time.time() >= deadline:
+        break
+    time.sleep(30)
 ''')
     md("""## Post-processing calibration and paired assessment
 

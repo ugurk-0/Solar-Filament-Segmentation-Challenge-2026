@@ -491,6 +491,7 @@ def train(cfg: Cfg, epoch_callback=None):
         if initial["cfg"]["fold"] != cfg.fold:
             raise ValueError("Warm-start checkpoint must belong to the same held-out fold")
         model.load_state_dict(initial["ema"])
+        del initial
     opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
     sch = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=cfg.epochs)
     ema = EMA(model, cfg.ema_decay)

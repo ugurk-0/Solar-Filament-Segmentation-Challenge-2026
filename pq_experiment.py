@@ -84,6 +84,13 @@ def run(checkpoint, output, mode, baseline=None, parameters=None):
                 "caveat": "Exploratory local experiment: prior agents already inspected aggregate fold-1 metrics."}
     signature = protocol["checkpoint_sha256"]
     cache = output / ("probabilities_" + signature[:12]); cache.mkdir(exist_ok=True)
+    previous_protocol = output / "protocol.json"
+    if previous_protocol.exists():
+        previous = json.loads(previous_protocol.read_text())
+        normalized_config = json.loads(json.dumps(protocol["config"]))
+        if (previous["checkpoint_sha256"] != signature
+                or previous["config"] != normalized_config):
+            raise ValueError("Use a new output directory for a different checkpoint or inference configuration")
     _write_json_atomically(output / "protocol.json", protocol)
     _, ds = make_loader(coco, ids, cfg, False)
     model = FilamentUNet(cfg, pretrained=False).to(cfg.device)
@@ -114,11 +121,15 @@ def run(checkpoint, output, mode, baseline=None, parameters=None):
 
     default = {"instance_method": "watershed", "thresh": 0.5, "min_area": 50}
     if mode == "baseline":
-        grid = []
+        grid_path = output / "calibration_grid.json"
+        grid = json.loads(grid_path.read_text()) if grid_path.exists() else []
         for method in ("watershed", "components"):
             for threshold in (0.35, 0.5, 0.65):
                 for area in (50, 200):
                     setting = {"instance_method": method, "thresh": threshold, "min_area": area}
+                    if any(row["parameters"] == setting for row in grid):
+                        print(f"reusing completed calibration: {setting}", flush=True)
+                        continue
                     rows = score(splits["calibration"], setting)
                     grid.append({"parameters": setting, "summary": summarize(rows)})
                     _write_json_atomically(output / "calibration_grid.json", grid)
