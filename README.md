@@ -4,7 +4,7 @@ Instance segmentation of solar filaments in GONG H-alpha images from MAGFiLO v1.
 
 The pipeline trains a U-Net, separates predicted filaments into instances, evaluates **Panoptic Quality (PQ)**, and exports an RLE submission CSV. The notebook presents a paired experiment on post-processing and training changes.
 
-**Status:** one fold-1 post-processing calibration, one four-epoch warm-start run, an independent paired assessment, and a three-epoch PQ-guided follow-up are complete locally. The selected local checkpoint is the first epoch of the four-epoch run. Test inference/submission and multi-fold confirmation remain pending. No leaderboard score or completed ablation study is reported here. See the [dated experiment report](reports/pq_experiment_20260926.md) for measured results and limitations.
+**Status:** one fold-1 post-processing calibration, one four-epoch warm-start run, an independent paired assessment, and three three-epoch PQ-guided follow-ups are complete locally. The selected local checkpoint is still the first epoch of the four-epoch run. Test inference/submission and multi-fold confirmation remain pending. No leaderboard score or completed ablation study is reported here. See the [dated experiment report](reports/pq_experiment_20260926.md) for measured results and limitations.
 
 ## Repository contents
 
@@ -164,6 +164,8 @@ The calibration split selected connected components with probability threshold `
 The calibrated converter improved paired mean PQ by `+0.1368` (observation-bootstrap 95% CI `+0.1199` to `+0.1533`). Fine-tuning added `+0.0380` (95% CI `+0.0195` to `+0.0575`). The combined change was `+0.1748` (95% CI `+0.1509` to `+0.1985`). These intervals are conditional on one split, one seed, and the selected checkpoint.
 
 The three-epoch follow-up used the calibrated converter during every monitoring pass and a lower learning rate. Its mean monitor PQ values were `0.2930`, `0.2901`, and `0.2864`, all below the starting checkpoint's like-for-like calibrated monitor PQ of `0.3028`. It was therefore rejected; the four-epoch run's `fold1_best.pt` remains selected. Detailed per-stage status, commands, artifacts, and caveats are in the [experiment report](reports/pq_experiment_20260926.md).
+
+Two additional three-epoch runs tested whether reducing the BCE positive-weight cap would suppress false positives. Cap `2.0` peaked at monitor PQ `0.2991`; cap `1.0` peaked at `0.3005`. Both improved over the first follow-up but remained below `0.3028`, so neither was promoted. Their complete epoch curves and prediction overlays are saved in the notebook.
 
 `eval` writes `evaluation_foldF.json` with aggregate and per-image results: PQ/SQ/RQ, pixel and matched-instance overlap metrics, TP/FP/FN, fragmentation and merging counts, and timing. The paired experiment additionally writes calibration and comparison reports under its configured output directory.
 

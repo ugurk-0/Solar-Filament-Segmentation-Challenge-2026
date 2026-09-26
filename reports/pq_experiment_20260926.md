@@ -16,7 +16,9 @@ The selected checkpoint is `runs/pq_research_20260926/training/fold1_best.pt`, p
 | Twelve-candidate post-processing calibration | Complete | `runs/pq_research_20260926/baseline/calibration_grid.json` |
 | Independent baseline assessment | Complete | `runs/pq_research_20260926/baseline/audit.json` |
 | Independent trained-checkpoint assessment | Complete | `runs/pq_research_20260926/comparison/audit.json` |
-| Three-epoch PQ-guided follow-up | Complete; rejected | `runs/pq_research_20260926/training_round2/history.json` |
+| Three-epoch continuation | Complete; rejected | `runs/pq_research_20260926/training_round2/history.json` |
+| Three-epoch positive-cap 2.0 run | Complete; rejected | `runs/pq_research_20260926/training_round3/history.json` |
+| Three-epoch positive-cap 1.0 run | Complete; rejected | `runs/pq_research_20260926/training_round4/history.json` |
 | Executed presentation notebook | Complete | `notebook.ipynb` |
 | Test inference and submission | Pending | — |
 
@@ -79,6 +81,17 @@ The second run started from the selected epoch-1 checkpoint and used three epoch
 
 The follow-up did not beat its starting checkpoint and was rejected. This result argues against continuing the same fine-tuning trajectory merely because loss remains low. Future training changes should be evaluated with the frozen calibrated converter and should target the remaining recognition errors, especially false positives and missed instances.
 
+### False-positive-focused follow-ups
+
+Two more isolated runs started from the same selected checkpoint with learning rate `1e-5`, EMA decay `0.99`, and the same calibrated converter and 16-observation monitor. Only the BCE positive-weight cap changed.
+
+| Run | Positive-weight cap | Epoch PQ sequence | Best epoch | Best PQ | Mean TP | Mean FP | Mean FN | Decision |
+|---|---:|---|---:|---:|---:|---:|---:|---|
+| Round 3 | 2.0 | 0.2945, 0.2991, 0.2938 | 2 | 0.2991 | 4.375 | 7.188 | 3.062 | Reject |
+| Round 4 | 1.0 | 0.2971, 0.3005, 0.2870 | 2 | 0.3005 | 4.312 | 7.062 | 3.125 | Reject |
+
+Reducing positive weighting moved the best monitor PQ toward the 0.3028 starting value and modestly reduced false positives, but neither run exceeded the starting checkpoint. Round 4's lower loss (`0.2566` at its best epoch) did not translate into higher PQ. The result supports exploring false-positive control through a more targeted objective or sampling change, but it does not support replacing the selected checkpoint.
+
 ## Commands run
 
 The verified interpreter was `C:/Users/ugurk/AppData/Local/Programs/Python/Python312/python.exe` with PyTorch 2.4.1+cu124 and CUDA available.
@@ -91,6 +104,8 @@ python pq_experiment.py baseline --checkpoint runs/corrected_loss_fold1/fold1.pt
 python solution.py train --fold 1 --epochs 4 --data-dir MAGFiLO_1.0_Kaggle_2026/train --work-dir runs/pq_research_20260926/training --init-ckpt runs/corrected_loss_fold1/fold1.pt --eval-every 1 --eval-max-images 16 --preview-count 3 --no-tta --window 1024 --lr 0.0001 --ema-decay 0.9
 python pq_experiment.py compare --checkpoint runs/pq_research_20260926/training/fold1_best.pt --output runs/pq_research_20260926/comparison --baseline runs/pq_research_20260926/baseline/audit.json --parameters runs/pq_research_20260926/baseline/selected_postproc.json
 python run_training_round2.py
+python run_training_round3.py
+python run_training_round4.py
 python build_notebook.py
 ```
 

@@ -63,6 +63,7 @@ stage_paths = {
     "Round 2 guided training": RUN_ROOT / "training_round2" / "history.json",
     "Round 3 FP-focused training": RUN_ROOT / "training_round3" / "history.json",
     "Round 4 unweighted-BCE training": RUN_ROOT / "training_round4" / "history.json",
+    "Round 5 background-exposure training": RUN_ROOT / "training_round5" / "history.json",
     "Test inference/submission": RUN_ROOT / "submission" / "submission_manifest.json",
 }
 display(pd.DataFrame([
@@ -127,6 +128,7 @@ def show_all_training():
     show_training_run(RUN_ROOT / "training_round2", "Round 2 (live/current)")
     show_training_run(RUN_ROOT / "training_round3", "Round 3 (live/current)")
     show_training_run(RUN_ROOT / "training_round4", "Round 4 (live/current)")
+    show_training_run(RUN_ROOT / "training_round5", "Round 5 (live/current)")
     comparison = RUN_ROOT / "comparison" / "full_fold.json"
     split_path = RUN_ROOT / "training" / "split.json"
     if comparison.exists() and split_path.exists():
