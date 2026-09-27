@@ -1,5 +1,7 @@
 # Solar filament instance segmentation
 
+Used Codex GPT 6 Astra to assist me in this work.
+
 [![Regression tests](https://github.com/ugurk-0/Solar-Filament-Segmentation-Challenge-2026/actions/workflows/tests.yml/badge.svg)](https://github.com/ugurk-0/Solar-Filament-Segmentation-Challenge-2026/actions/workflows/tests.yml)
 
 A PyTorch pipeline that identifies individual solar filaments in 2048 ? 2048 GONG H-alpha images. Built for the [Solar Filament Segmentation Challenge 2026](https://www.kaggle.com/competitions/filament-segmentation-2026), it covers training, instance extraction, Panoptic Quality (PQ) evaluation, and competition CSV export.
