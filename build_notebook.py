@@ -64,7 +64,7 @@ stage_paths = {
     "Round 3 FP-focused training": RUN_ROOT / "training_round3" / "history.json",
     "Round 4 unweighted-BCE training": RUN_ROOT / "training_round4" / "history.json",
     "Round 5 background-exposure training": RUN_ROOT / "training_round5" / "history.json",
-    "Test inference/submission": RUN_ROOT / "submission" / "submission_manifest.json",
+    "Test inference/submission": RUN_ROOT / "submission_round5" / "submission_manifest.json",
 }
 display(pd.DataFrame([
     {"stage": name, "status": "complete" if path.exists() else "pending", "artifact": str(path)}
@@ -128,7 +128,7 @@ def show_all_training():
     show_training_run(RUN_ROOT / "training_round2", "Round 2 (live/current)")
     show_training_run(RUN_ROOT / "training_round3", "Round 3 (live/current)")
     show_training_run(RUN_ROOT / "training_round4", "Round 4 (live/current)")
-    show_training_run(RUN_ROOT / "training_round5", "Round 5 (live/current)")
+    show_training_run(RUN_ROOT / "training_round5", "Round 5 (selected)")
     comparison = RUN_ROOT / "comparison" / "full_fold.json"
     split_path = RUN_ROOT / "training" / "split.json"
     if comparison.exists() and split_path.exists():
@@ -136,12 +136,12 @@ def show_all_training():
         monitor = set(json.loads(split_path.read_text())["monitor_ids"])
         starting_pq = sum(r["pq"] for r in rows if r["image_id"] in monitor) / len(monitor)
         print(f"Round-2 starting checkpoint, calibrated monitor PQ: {starting_pq:.4f}")
-        print("Keep round 1 unless a round-2 epoch exceeds this value.")
+        print("Round 5 was promoted only after a separate 85-observation assessment.")
 
 if RUN_TRAINING:
     solution.train(CFG)
 else:
-    print("Displaying saved/live runs. Training is currently launched by run_training_round2.py.")
+    print("Displaying all saved training rounds. Dedicated launchers are run_training_round1.py through run_training_round5.py.")
 
 deadline = time.time() + LIVE_WATCH_MINUTES * 60
 while True:
@@ -202,12 +202,12 @@ upload it to Kaggle. Review `submission_manifest.json` for image coverage and se
 """)
     code('''
 from dataclasses import replace
-submission_dir = RUN_ROOT / "submission"
+submission_dir = RUN_ROOT / "submission_round5"
 if RUN_SUBMISSION:
     parameters = json.loads((baseline_dir / "selected_postproc.json").read_text())["parameters"]
     submission_cfg = replace(CFG, work_dir=str(submission_dir),
                              test_dir="MAGFiLO_1.0_Kaggle_2026/test/test_images", **parameters)
-    solution.submit(submission_cfg, [str(Path(CFG.work_dir) / "fold1_best.pt")])
+    solution.submit(submission_cfg, [str(RUN_ROOT / "training_round5" / "fold1_best.pt")])
 for name in ("submission.csv", "submission_manifest.json"):
     path = submission_dir / name
     if path.exists(): display(FileLink(str(path)))

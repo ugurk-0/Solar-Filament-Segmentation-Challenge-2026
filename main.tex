@@ -5,35 +5,29 @@
 \usepackage{graphicx, booktabs, amsmath, hyperref}
 \title{Attention-Gated U-Net with Skeleton-Aware Loss for\\
 Solar Filament Segmentation (Panoptic Quality Optimisation)}
-\author{Team Name}
+\author{Solar Filament Segmentation Project}
 \date{}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-We address the Solar Filament Segmentation Challenge 2026 (MAGFiLO v1.0, GONG
-H-$\alpha$ observations, 2048$\times$2048 px) under the Panoptic Quality (PQ)
-metric. Our solution combines: (i) an anti-leakage GroupKFold protocol keyed on
-physical observation names, since the same image is independently annotated by
-2--3 annotators; (ii) a timm-encoder U-Net with additive attention gates and a
-zero-initialised dilated bottleneck; (iii) a BCE + soft-Dice + soft-clDice loss
-that penalises fragmented thin structures while using segmentation masks only
-for training; (iv) sliding-window inference with 8-way dihedral TTA and fold
-ensembling; (v) distance-transform watershed instance separation with
-GT-style post-processing (hole filling, single connected piece, small-object
-suppression) and post-processing parameters tuned directly on local PQ.
-This report is a draft; quantitative comparisons remain to be completed.
+We study instance segmentation of solar filaments in 2048$\times$2048 GONG
+H-$\alpha$ images using an attention-gated ResNet-18 U-Net and segmentation-mask
+losses. Grouping duplicate annotator records by physical observation avoids
+exact-image leakage. On a fixed 85-observation local assessment, mean Panoptic
+Quality (PQ) increased from 0.0706 with the original watershed configuration
+to 0.2632 after connected-component calibration and guided fine-tuning.
+The assessment was reused across rounds; these are exploratory local results,
+not a leaderboard score or an isolated ablation of architectural contributions.
 \end{abstract}
 
 \section{Task and Data Analysis}
-Filaments are thin dark structures (mean $\approx$2\,k px area inside
-$\approx$16\,k px bounding boxes) on full-disk H-$\alpha$ images. Three dataset
-properties drive our design: (1) duplicated observations (same physical image,
-2--3 independent annotator sets; COCO ids differ only by a batch prefix);
-(2) the $\pm70^{\circ}$ central-meridian annotation limit; (3) inter-annotator
-agreement $\kappa=0.66$, i.e.\ instance definition (one filament vs.\ several
-pieces) is itself noisy, so post-merging/splitting behaviour must be controlled.
+Multiple annotator records can describe the same physical observation.
+We group records by the final hyphen-separated filename stem and deduplicate
+validation to one annotation set per observation. Losses and evaluation use an
+approximate projected $\pm70^{\circ}$ longitude support with fixed disk radius
+and zero solar tilt. This does not eliminate temporal correlation between images.
 
 \section{Method}
 \subsection{Model}
@@ -49,33 +43,48 @@ all terms masked to the annotated limb region. Soft-clDice~\cite{shit2021} compa
 penalises filament fragmentation invisible to Dice.
 
 \subsection{Training}
-Filament-centred 768$\times$768 crops (75\%), dihedral augmentations
+Filament-centred 768$\times$768 crops (50\% in Round 5; other crops sampled uniformly), dihedral augmentations
 (flips/rot90 are physically valid), photometric jitter, AMP, AdamW +
 cosine schedule, weight EMA.
 
 \subsection{Inference and Post-processing}
-Overlap-add sliding window (1024 px, 256 overlap) with 8-way dihedral TTA;
-probability maps averaged over folds. Instances via thresholding and connected
-components by default, with optional EDT watershed, then cleanup: hole filling,
-largest connected component, $\geq$50 px. Threshold, watershed distance and
-min-area are grid-tuned on the held-out fold using a local PQ implementation.
+Overlap-add sliding windows use size 1024 px and overlap 256 px.
+The selected model is a single fold-1 EMA checkpoint (Round 5 epoch 3).
+Connected components use threshold 0.65 and minimum area 200, selected on
+40 calibration observations. Local assessments use no test-time augmentation
+(TTA); the CSV uses eight-way dihedral TTA. The exact exported inference
+configuration has not been assessed locally with the reported protocol.
 
 \section{Experiments}
-GroupKFold ($k{=}5$) keyed on observation names; validation uses one annotation
-set per image and is scored with local PQ (greedy IoU matching @ 0.5).
-Ablation (fold 0, local PQ): \emph{fill in table}.
+Fold 1 contains 141 deduplicated validation observations: 16 for epoch
+monitoring, 40 for converter calibration, and 85 for assessment. PQ uses
+greedy one-to-one matching at IoU $\geq0.5$; mean observation PQ and pooled
+dataset PQ are reported separately.
 \begin{center}\small
-\begin{tabular}{@{}lc@{}}
+\begin{tabular}{@{}lrr@{}}
 \toprule
-variant & local PQ \\
+Configuration & Mean PQ & Dataset PQ \\
 \midrule
-U-Net, BCE+Dice & -- \\
-+ clDice mask loss & -- \\
-+ attention gates + dilated bottleneck & -- \\
-+ TTA + fold ensemble + PQ-tuned post-proc & -- \\
+Original, watershed & 0.0706 & 0.0706 \\
+Original, calibrated components & 0.2073 & 0.2177 \\
+Round 1, calibrated components & 0.2454 & 0.2511 \\
+Round 5, calibrated components & 0.2632 & 0.2626 \\
 \bottomrule
 \end{tabular}
 \end{center}
+Rounds 2--4 did not exceed the calibrated starting monitor score and were
+rejected. Round 5 reduced the BCE positive-weight cap to 1.0 and the probability
+of a filament-centred crop to 0.5. Its epoch monitor PQ values were 0.3060,
+0.2871, and 0.3102. On the assessment subset, it produced 305 true positives,
+536 false positives, and 343 false negatives.
+
+Relative to the original calibrated checkpoint, the paired mean-PQ gain was
+0.0559 (observation-bootstrap 95\% interval [0.0325, 0.0812]). This interval is
+conditional on one split, seed, and selected checkpoint. The assessment was
+reused across rounds and is not an untouched final test. No controlled
+architecture/loss ablation, multi-fold confirmation, or leaderboard result is
+claimed. The generated CSV contains 1,837 instance masks over 180 processed
+test images; all saved masks passed COCO RLE validation.
 
 \section{Conclusion}
 We hypothesise that skeleton-aware losses and instance-aware post-processing

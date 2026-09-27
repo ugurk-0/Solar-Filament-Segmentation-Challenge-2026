@@ -1018,9 +1018,11 @@ def submit(cfg: Cfg, ckpts):
         models.append(m)
     bp = Path(f"{cfg.work_dir}/best_postproc.json")
     if bp.exists():                                   # apply tuned post-proc if available
-        for k, v in json.loads(bp.read_text()).items():
+        saved_postproc = json.loads(bp.read_text())
+        saved_postproc = saved_postproc.get("parameters", saved_postproc)
+        for k, v in saved_postproc.items():
             if hasattr(cfg, k): setattr(cfg, k, v)
-        print("using tuned post-processing:", bp.read_text())
+        print("using tuned post-processing:", saved_postproc)
     limb = build_limb_mask(cfg)
     rows = []
     files = sorted(Path(cfg.test_dir).glob("*.jpeg"))
@@ -1032,11 +1034,15 @@ def submit(cfg: Cfg, ckpts):
         prob = predict_full(models, load_image(f), cfg)
         inst = prob_to_instances(prob, cfg, limb)
         image_counts[f.name] = len(inst)
+        occupied = np.zeros((cfg.img_size, cfg.img_size), dtype=bool)
         for k, msk in enumerate(inst, 1):
             if msk.shape != (cfg.img_size, cfg.img_size):
                 raise ValueError(f"Unexpected mask shape for {f.name}: {msk.shape}")
             if not np.any(msk):
                 raise ValueError(f"Empty predicted instance for {f.name}_{k}")
+            if np.any(occupied & msk):
+                raise ValueError(f"Overlapping predicted instances for {f.name}_{k}")
+            occupied |= msk
             encoded = mask_to_rle(msk)
             decoded = maskutils.decode({"size": [cfg.img_size, cfg.img_size], "counts": encoded})
             if decoded.shape != (cfg.img_size, cfg.img_size) or not np.array_equal(decoded.astype(bool), msk):
@@ -1053,6 +1059,7 @@ def submit(cfg: Cfg, ckpts):
     _write_json_atomically(Path(cfg.work_dir) / "submission_manifest.json", {
         "checkpoints": ckpts, "config": vars(cfg), "image_instance_counts": image_counts,
         "n_images": len(files), "n_instances": len(rows), "rle_round_trip": "all passed",
+        "instance_overlap": "none",
     })
     print(f"saved {out} ({len(rows)} rows)")
 

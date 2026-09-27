@@ -19,8 +19,9 @@ The selected checkpoint is `runs/pq_research_20260926/training/fold1_best.pt`, p
 | Three-epoch continuation | Complete; rejected | `runs/pq_research_20260926/training_round2/history.json` |
 | Three-epoch positive-cap 2.0 run | Complete; rejected | `runs/pq_research_20260926/training_round3/history.json` |
 | Three-epoch positive-cap 1.0 run | Complete; rejected | `runs/pq_research_20260926/training_round4/history.json` |
+| Three-epoch background-exposure run | Complete; selected | `runs/pq_research_20260926/training_round5/history.json` |
 | Executed presentation notebook | Complete | `notebook.ipynb` |
-| Test inference and submission | Pending | — |
+| Test inference and submission | Complete | `runs/pq_research_20260926/submission_round5/submission.csv` |
 
 The notebook contains saved outputs for the status table, epoch histories, learning curves, prediction/ground-truth overlays, calibration grid, independent assessment, and descriptive full-fold metrics.
 
@@ -92,6 +93,12 @@ Two more isolated runs started from the same selected checkpoint with learning r
 
 Reducing positive weighting moved the best monitor PQ toward the 0.3028 starting value and modestly reduced false positives, but neither run exceeded the starting checkpoint. Round 4's lower loss (`0.2566` at its best epoch) did not translate into higher PQ. The result supports exploring false-positive control through a more targeted objective or sampling change, but it does not support replacing the selected checkpoint.
 
+### Round 5: background exposure
+
+Round 5 retained the positive-weight cap of `1.0` and sampled uniform random crops with probability `0.5` (these can still contain filaments). Its monitor PQ sequence was `0.3060`, `0.2871`, and `0.3102`; epoch 3 was selected. A separate assessment on the same 85 untouched observations used the frozen components converter (`0.65`, minimum area `200`). It measured mean image PQ `0.2632`, dataset PQ `0.2626`, SQ `0.6409`, RQ `0.4097`, TP `305`, FP `536`, FN `343`, and pixel Dice `0.6209`.
+
+Relative to the original checkpoint under calibrated post-processing, the paired mean-PQ gain was `+0.0559`, with observation-bootstrap 95% interval `[+0.0325, +0.0812]`. Relative to the original checkpoint with the former default converter, the combined paired gain was `+0.1927`, with interval `[+0.1638, +0.2223]`. Round 5 therefore replaces Round 1 as the selected checkpoint for test inference.
+
 ## Commands run
 
 The verified interpreter was `C:/Users/ugurk/AppData/Local/Programs/Python/Python312/python.exe` with PyTorch 2.4.1+cu124 and CUDA available.
@@ -103,14 +110,23 @@ python audit_data.py
 python pq_experiment.py baseline --checkpoint runs/corrected_loss_fold1/fold1.pt --output runs/pq_research_20260926/baseline
 python solution.py train --fold 1 --epochs 4 --data-dir MAGFiLO_1.0_Kaggle_2026/train --work-dir runs/pq_research_20260926/training --init-ckpt runs/corrected_loss_fold1/fold1.pt --eval-every 1 --eval-max-images 16 --preview-count 3 --no-tta --window 1024 --lr 0.0001 --ema-decay 0.9
 python pq_experiment.py compare --checkpoint runs/pq_research_20260926/training/fold1_best.pt --output runs/pq_research_20260926/comparison --baseline runs/pq_research_20260926/baseline/audit.json --parameters runs/pq_research_20260926/baseline/selected_postproc.json
+python run_training_round1.py
 python run_training_round2.py
 python run_training_round3.py
 python run_training_round4.py
+python run_training_round5.py
 python build_notebook.py
+python solution.py submit --test-dir MAGFiLO_1.0_Kaggle_2026/test/test_images --work-dir runs/pq_research_20260926/submission_round5 --ckpts runs/pq_research_20260926/training_round5/fold1_best.pt
 ```
 
-The final notebook was executed in place with `nbclient` and validated with `nbformat`. The final regression run passed 12 tests. Existing checkpoints were never overwritten; every training cycle used its own work directory.
+The final notebook was executed in place with `nbclient` and validated with `nbformat`. The final regression run passed 15 tests. Existing checkpoints were never overwritten; every training cycle used its own work directory.
 
-## Remaining work
+## Submission artifact and remaining work
 
-Test inference and submission generation are still pending. A stronger estimate also requires more folds or a temporal-block validation design, additional seeds, and controlled ablations of the support, loss, crop-sampling, and optimization changes. Test labels must not be used for post-processing or checkpoint selection.
+Test inference completed for all 180 images with eight-way dihedral TTA and the frozen calibrated converter. The CSV contains 1,837 uniquely identified, non-overlapping instances. All 2,048 × 2,048 COCO RLEs decoded successfully, and the file SHA-256 is `BE6C49F95411D26E0CCC068C2D2C15FBB3D793467B5856138A065405085C7D46`.
+
+A stronger estimate still requires more folds or a temporal-block validation design, additional seeds, and controlled ablations of the support, loss, crop-sampling, and optimization changes. Test labels were not used for post-processing or checkpoint selection.
+
+## Interpretation of the final artifact
+
+The assessment split was reused across rounds and is therefore an exploratory comparison, not an untouched final test. Local assessment used no TTA, while the exported CSV used eight-way TTA; the reported scores do not assess that exact inference configuration.

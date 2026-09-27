@@ -1,0 +1,80 @@
+{
+  "protocol": {
+    "fold": 1,
+    "seed": 2026,
+    "monitor_observations": 16,
+    "calibration_observations": 40,
+    "assessment_observations": 85,
+    "tta": false,
+    "limitation": "Assessment split was reused across rounds; exploratory estimate, not an untouched final test."
+  },
+  "assessment": [
+    {
+      "label": "Original + watershed",
+      "n": 85,
+      "mean_pq": 0.07055663922980013,
+      "dataset_pq": 0.07056293833061811,
+      "sq": 0.5987593517066112,
+      "rq": 0.11784857828023296,
+      "tp": 172,
+      "fp": 2099,
+      "fn": 476,
+      "pixel_dice": 0.5628437265003393
+    },
+    {
+      "label": "Original + calibrated components",
+      "n": 85,
+      "mean_pq": 0.2073302614097145,
+      "dataset_pq": 0.21765865061860826,
+      "sq": 0.6202248069351564,
+      "rq": 0.3509350935093509,
+      "tp": 319,
+      "fp": 851,
+      "fn": 329,
+      "pixel_dice": 0.5871189812621233
+    },
+    {
+      "label": "Round 1 + calibrated components",
+      "n": 85,
+      "mean_pq": 0.2453637488851751,
+      "dataset_pq": 0.25107356964485733,
+      "sq": 0.6397697636447374,
+      "rq": 0.3924436319317489,
+      "tp": 322,
+      "fp": 671,
+      "fn": 326,
+      "pixel_dice": 0.6113069223207858
+    },
+    {
+      "label": "Round 5 + calibrated components",
+      "n": 85,
+      "mean_pq": 0.26321571589444187,
+      "dataset_pq": 0.2625654163760502,
+      "sq": 0.6409178770228503,
+      "rq": 0.40967092008059103,
+      "tp": 305,
+      "fp": 536,
+      "fn": 343,
+      "pixel_dice": 0.6208845410880742
+    }
+  ],
+  "round5_paired_effect": {
+    "mean_pq_delta": 0.05588545448472735,
+    "observation_bootstrap_95ci": [
+      0.032502762891037255,
+      0.08115137206301672
+    ],
+    "date_block_bootstrap_95ci": [
+      0.031180106495240365,
+      0.0797870330132162
+    ],
+    "n_observations": 85,
+    "n_dates": 84,
+    "interpretation": "Conditional on this split, training seed and selected model; not leaderboard uncertainty."
+  },
+  "sources": [
+    "runs/pq_research_20260926/baseline/audit.json",
+    "runs/pq_research_20260926/comparison/audit.json",
+    "runs/pq_research_20260926/comparison_round5/audit.json"
+  ]
+}
