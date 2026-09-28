@@ -3,8 +3,7 @@
 ## Repository map
 
 - The primary Kaggle solution is the root [README.md](README.md), [solution.py](solution.py), and [notebook.ipynb](notebook.ipynb).
-- `MAGFiLO_1.0_Kaggle_2026/` contains the competition train/test data. Treat annotation JSON and image filenames as data contracts; do not invent labels or silently change paths.
-- `stage-sohaib-fmi-detector/` is a separate nested FMI detector project with its own `src/`, `configs/`, `scripts/`, `tests/`, and checkpoints. Do not apply root-pipeline assumptions to it.
+- `MAGFiLO_1.0_Kaggle_2026/` contains the competition train/test data. Treat annotation JSON and image filenames as data contracts; do not invent labels or silently change paths.`configs/`, `scripts/`, `tests/`, and checkpoints. Do not apply root-pipeline assumptions to it.
 - `main.tex` is the technical report and must agree with measured experiments, not intended results.
 
 ## Reproducibility and commands

@@ -1,0 +1,50 @@
+{
+  "before": {
+    "n": 85,
+    "mean_pq": 0.26321571589444187,
+    "dataset_pq": 0.2625654163760502,
+    "sq": 0.6409178770228503,
+    "rq": 0.40967092008059103,
+    "tp": 305,
+    "fp": 536,
+    "fn": 343
+  },
+  "after": {
+    "n": 85,
+    "mean_pq": 0.271428171269003,
+    "dataset_pq": 0.27100326957602094,
+    "sq": 0.6427512490316036,
+    "rq": 0.4216300940438871,
+    "tp": 269,
+    "fp": 359,
+    "fn": 379
+  },
+  "paired": {
+    "mean_pq_delta": 0.00821245537456116,
+    "observation_bootstrap_95ci": [
+      -0.009628829703879613,
+      0.026213371476748768
+    ],
+    "date_block_bootstrap_95ci": [
+      -0.009051043102229192,
+      0.02541128809246971
+    ],
+    "n_observations": 85,
+    "n_dates": 84,
+    "interpretation": "Conditional on this split, training seed and selected model; not leaderboard uncertainty."
+  },
+  "parameters": {
+    "instance_method": "components",
+    "thresh": 0.8,
+    "min_area": 500,
+    "close_kernel": 1
+  },
+  "protocol": {
+    "tta": false,
+    "calibration_n": 40,
+    "assessment_n": 85,
+    "cleanup": "ownership-preserving hole filling",
+    "kaggle_baseline_user_reported": 0.24,
+    "kaggle_candidate_score": null
+  }
+}

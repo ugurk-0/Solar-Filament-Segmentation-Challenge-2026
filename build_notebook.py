@@ -212,6 +212,57 @@ for name in ("submission.csv", "submission_manifest.json"):
     path = submission_dir / name
     if path.exists(): display(FileLink(str(path)))
 ''')
+    md("""## Post-submission refinement (27 September)
+
+The first submitted CSV scored **0.24**, as reported by the author. The reference
+notebook's 0.70 result dates to before the August metric change and is not a
+directly comparable target. This experiment calibrates confidence, area and
+closing on 40 observations, then evaluates the frozen winner on the same
+85-observation research assessment. It does not tune on test images.
+
+Run `python refine_postprocessing.py` to reproduce. Live progress is in
+`runs/refinement_20260927.log`. No training is performed in this stage.
+""")
+    code('''
+refinement = Path("runs/pq_refinement_20260928_fixed")
+progress = Path("runs/refinement_20260928_fixed.log")
+if progress.exists():
+    encoding = "utf-16" if progress.read_bytes().startswith(b"\\xff\\xfe") else "utf-8"
+    print("\\n".join(progress.read_text(encoding=encoding, errors="replace").splitlines()[-12:]))
+grid = refinement / "calibration_grid.json"
+if grid.exists():
+    display(pd.DataFrame([{**r["parameters"], **r["summary"]}
+        for r in json.loads(grid.read_text())]).sort_values("mean_pq", ascending=False))
+assessment = refinement / "assessment.json"
+if assessment.exists():
+    result = json.loads(assessment.read_text())
+    display(pd.DataFrame({"before": result["before"], "after": result["after"]}).T)
+    display(result["paired"])
+for name in ("submission.csv", "submission_description.md"):
+    path = refinement / name
+    if path.exists(): display(FileLink(str(path)))
+''')
+    md("""## Automatic improvement loop
+
+Every experiment records its hypothesis, configuration, epoch results and decision
+in `reports/autoupgrade_20260928.md`. Training previews below update from the same
+run artifacts as the training process. Rerun this cell to see new epochs.
+The earlier refinement export failed its overlap check; ownership-preserving
+cleanup was corrected and evaluated before these experiments.
+""")
+    code('''
+upgrade_root = Path("runs/autoupgrade_20260928")
+state_path = upgrade_root / "state.json"
+if state_path.exists():
+    state = json.loads(state_path.read_text())
+    print("Starting monitor PQ:", state.get("baseline_monitor_pq", "pending"))
+    for name, record in state.get("experiments", {}).items():
+        print(name, record["status"], record["hypothesis"])
+        show_training_run(upgrade_root / name, name)
+        if "paired_vs_parent" in record: display(record["paired_vs_parent"])
+else:
+    print("Automatic batch has not started yet.")
+''')
     md("""## Reproduction and limitations
 
 Install `requirements.txt` in the selected Python environment. Run

@@ -1,0 +1,13 @@
+{
+  "organizer_counting_pq": 0.271003269576021,
+  "totals": {
+    "tp": 269,
+    "fp": 359,
+    "fn": 379,
+    "matched_iou_sum": 172.9000859895014
+  },
+  "observations_with_different_counts": [],
+  "n_observations": 85,
+  "local_dataset_pq": 0.27100326957602094,
+  "scope": "Same 85 deduplicated observations and support mask; not hidden-server verification"
+}

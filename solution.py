@@ -635,9 +635,7 @@ def postprocess_one(mask: np.ndarray) -> np.ndarray:
 
 
 def prob_to_instances(prob, cfg: Cfg, limb) -> list:
-    """Threshold -> closing -> EDT -> seeded watershed -> per-instance cleanup.
-    The watershed is what prevents two touching filaments from being submitted
-    as one blob (a one-to-many relation that PQ penalises twice)."""
+    """Extract components or watershed instances; cleanup preserves ownership."""
     m = (prob > cfg.thresh) & limb
     if cfg.close_kernel > 1:
         m = ndimage.binary_closing(m, structure=np.ones((cfg.close_kernel,) * 2))
@@ -665,14 +663,22 @@ def prob_to_instances(prob, cfg: Cfg, limb) -> list:
     else:
         raise ValueError(f"Unknown instance method: {cfg.instance_method}")
     instances = []
+    occupied = np.zeros_like(m, dtype=bool)
     for i, box in enumerate(ndimage.find_objects(lab), 1):
         if box is None:
             continue
-        local = postprocess_one(lab[box] == i) & limb[box]
+        original = (lab[box] == i) & limb[box]
+        local = postprocess_one(original) & limb[box]
+        # A hole can contain a separate predicted instance. Filling it would
+        # steal its pixels (and create overlapping COCO masks). In that case
+        # preserve the original component instead of changing its topology.
+        if np.any(local & (((lab[box] != 0) & (lab[box] != i)) | occupied[box])):
+            local = original
         if local.sum() >= cfg.min_area:
             mask = np.zeros_like(m)
             mask[box] = local
             instances.append(mask)
+            occupied[box] |= local
     return instances
 
 

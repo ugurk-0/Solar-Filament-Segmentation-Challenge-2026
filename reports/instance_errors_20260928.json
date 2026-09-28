@@ -1,0 +1,36 @@
+{
+  "ground_truth_by_area": {
+    "1500_plus": 254,
+    "500_to_1499": 272,
+    "under_500": 122
+  },
+  "missed_by_area": {
+    "1500_plus": 143,
+    "500_to_1499": 130,
+    "under_500": 106
+  },
+  "missed_best_iou": {
+    "0.3_to_0.5": 144,
+    "under_0.1": 182,
+    "0.1_to_0.3": 53
+  },
+  "false_positive_area": {
+    "n": 359,
+    "median": 979.0,
+    "p10": 553.8,
+    "p90": 2291.9999999999995
+  },
+  "false_positive_mean_probability": {
+    "n": 359,
+    "median": 0.9686528444290161,
+    "p10": 0.9262253999710083,
+    "p90": 0.9803948521614074
+  },
+  "true_positive_mean_probability": {
+    "n": 269,
+    "median": 0.9753080010414124,
+    "p10": 0.9465030908584595,
+    "p90": 0.9837877750396729
+  },
+  "scope": "85 reused research assessment observations; diagnostic, not a tuning objective"
+}
