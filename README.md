@@ -6,7 +6,7 @@ Used Codex GPT 6 Astra to assist me in this work.
 
 A PyTorch pipeline that identifies individual solar filaments in 2048 ? 2048 GONG H-alpha images. Built for the [Solar Filament Segmentation Challenge 2026](https://www.kaggle.com/competitions/filament-segmentation-2026), it covers training, instance extraction, Panoptic Quality (PQ) evaluation, and competition CSV export.
 
-**Measured result:** mean local PQ increased from **0.0706 to 0.2632** across post-processing calibration and guided fine-tuning. This is an exploratory single-fold comparison on 85 observations, not a Kaggle score. The submission has been generated and checked locally; it has not been uploaded.
+**Measured result:** mean local PQ increased from **0.0706 to 0.2632** across post-processing calibration and guided fine-tuning. This is an exploratory single-fold comparison on 85 observations. The author reports a **0.24 Kaggle score** for the first submission. See the [post-submission experiment](reports/reference_notebook_review_20260927.md) for the next improvement attempt and reference-notebook review.
 
 ![Local assessment results](docs/assets/results.png)
 
@@ -33,6 +33,10 @@ The largest improvement came from reducing fragmented instances through post-pro
 Against the original calibrated checkpoint, Round 5 gained **0.0559 mean PQ**, with a paired observation-bootstrap 95% interval of **[0.0325, 0.0812]**. The assessment split was reused across rounds, so it is not an untouched final test. Intervals are conditional on one split and seed; architecture and loss contributions have not been isolated by ablation.
 
 See the [experiment report](reports/pq_experiment_20260926.md) and [versioned metrics snapshot](reports/results_summary.json). Regenerate the figure with `python scripts/build_results_figure.py`.
+
+**Post-submission candidate:** a 40-observation calibration selected stronger confidence/size filtering without closing. On the reused 85-observation assessment, mean PQ reached **0.2714** and dataset PQ **0.2710**, both without TTA. The paired gain's 95% interval includes zero; no improved Kaggle score is claimed. See the [analysis](reports/reference_notebook_review_20260927.md) and [corrected-converter results](reports/refinement_results_20260928_fixed.json).
+
+The [automatic improvement report](reports/autoupgrade_20260928.md) records each subsequent hypothesis, configuration, epoch result, and keep/reject decision. `python autoupgrade.py` runs the current controlled batch after `python refine_postprocessing.py` completes. It preserves prior runs, validates exports, and screens candidates on fixed monitoring observations before further assessment.
 
 ## Pipeline
 
@@ -72,6 +76,10 @@ This smoke test measures execution, not model quality. Full-resolution training 
 
 ## Explore the implementation
 
+Read [how the pipeline produces the submission CSV](docs/PIPELINE_AND_CSV.md)
+for a technical walkthrough, an explanation of the instance IDs and COCO RLE
+strings, and a command to decode and audit a real export.
+
 | Entry point | Purpose |
 |---|---|
 | [solution.py](solution.py) | Model, training, metrics, inference, tuning, and export |
@@ -86,6 +94,6 @@ Git strips large notebook outputs. The README figure and metrics snapshot provid
 
 ## Limitations
 
-The annotation support uses an approximate longitude mask. Grouping removes duplicate-observation leakage but does not eliminate temporal correlation. Further work requires an untouched temporal holdout, multiple seeds/folds, and evaluation of the exact TTA submission configuration. There is no leaderboard or competition-winning claim.
+The annotation support uses an approximate longitude mask. Grouping removes duplicate-observation leakage but does not eliminate temporal correlation. Further work requires an untouched temporal holdout, multiple seeds/folds, and evaluation of the exact TTA submission configuration. The 0.24 competition baseline is user-reported; the new candidate has no measured Kaggle score.
 
 Data originate from MAGFiLO and NSO/GONG; obtain them through the competition and follow its data terms. Data and trained weights are not redistributed here.
