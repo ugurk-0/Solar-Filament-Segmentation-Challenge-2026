@@ -90,7 +90,7 @@ Reproduce: `python experiment_annotation_medoid.py --smoke`, then `python experi
   },
   "selected_training_observations": 566,
   "leaderboard_score": null,
-  "completed_epochs": 4,
+  "completed_epochs": 5,
   "history": [
     {
       "epoch": 1,
@@ -115,6 +115,12 @@ Reproduce: `python experiment_annotation_medoid.py --smoke`, then `python experi
       "loss": 0.2707525842589435,
       "pq": 0.32437515685903073,
       "lr": 2.500000000000002e-06
+    },
+    {
+      "epoch": 5,
+      "loss": 0.2708683698553289,
+      "pq": 0.34215201760916736,
+      "lr": 6.698729810778067e-07
     }
   ]
 }
