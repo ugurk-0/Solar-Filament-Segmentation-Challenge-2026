@@ -51,7 +51,7 @@ flowchart LR
     F --> H[COCO RLE CSV]
 ```
 
-Training uses AMP, gradient accumulation, cosine scheduling, and EMA weights. Round 5 epoch 3 is selected. The local assessment uses no TTA; the exported CSV uses eight-way dihedral TTA. **The reported PQ does not measure the exact submitted inference configuration.**
+Training uses AMP, gradient accumulation, cosine scheduling, and EMA weights. Round 5 epoch 3 is selected. The original submission used eight-way dihedral TTA, unlike its local assessment. The later candidate in `runs/pq_refinement_20260928_fixed/submission.csv` uses no TTA, matching its local assessment configuration. **Local PQ is not a Kaggle leaderboard score.**
 
 ## Quick start
 
@@ -75,6 +75,11 @@ This smoke test measures execution, not model quality. Full-resolution training 
 **Reproducibility boundary:** datasets, trained checkpoints, and large run outputs are not bundled. Historical warm-start experiments require local checkpoints. A fresh clone can run tests and train from scratch, but cannot immediately recreate the reported CSV.
 
 ## Explore the implementation
+
+The [instance-quality experiment](docs/INSTANCE_QUALITY.md) adds a learned
+second-stage filter to the existing U-Net. It tests whether instance-level
+quality prediction improves PQ beyond pixel-probability thresholds; production
+defaults remain unchanged until a candidate passes paired assessment.
 
 Read [how the pipeline produces the submission CSV](docs/PIPELINE_AND_CSV.md)
 for a technical walkthrough, an explanation of the instance IDs and COCO RLE
