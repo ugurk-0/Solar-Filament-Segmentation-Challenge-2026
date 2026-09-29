@@ -89,6 +89,15 @@ Reproduce: `python experiment_annotation_medoid.py --smoke`, then `python experi
     "device": "cuda"
   },
   "selected_training_observations": 566,
-  "leaderboard_score": null
+  "leaderboard_score": null,
+  "completed_epochs": 1,
+  "history": [
+    {
+      "epoch": 1,
+      "loss": 0.2668023730098359,
+      "pq": 0.3124388090153526,
+      "lr": 9.330127018922195e-06
+    }
+  ]
 }
 ```
