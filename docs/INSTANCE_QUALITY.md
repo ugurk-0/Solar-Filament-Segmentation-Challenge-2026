@@ -9,6 +9,31 @@ This experiment adapts the quality-prediction idea from
 [Mask Scoring R-CNN (Huang et al., CVPR 2019)](https://openaccess.thecvf.com/content_CVPR_2019/html/Huang_Mask_Scoring_R-CNN_CVPR_2019_paper.html).
 It is a small second-stage CNN, not a reproduction of Mask R-CNN or its results.
 
+## Measured outcome (2026-09-29)
+
+The full twelve-epoch pilot completed. Monitoring selected epoch 5; calibration
+selected strict proposals with a quality cutoff of 0.2. The candidate was
+**rejected**, and the existing submission remains the retained candidate.
+
+| 85-observation assessment | Baseline | Quality filter |
+|---|---:|---:|
+| Mean PQ | 0.2714 | 0.2618 |
+| Pooled PQ | 0.2710 | 0.2694 |
+| True positives | 269 | 228 |
+| False positives | 359 | 216 |
+| False negatives | 379 | 420 |
+
+The filter removed 143 false positives but lost 41 correct matches. The paired
+mean-PQ difference was -0.0096, with an exploratory 95% observation-bootstrap
+interval of [-0.0296, 0.0074]. The calibration improvement did not carry over to
+assessment. Baseline pooled PQ reproduced exactly. No new test CSV was exported
+and no leaderboard submission was made; PQ 0.60 has not been achieved.
+
+Validation: seven focused quality-stage tests passed, the two-epoch smoke run
+completed through assessment, and `python -m pytest tests -q` passed all 27 tests
+before the full run. Checkpoints and detailed measurements are preserved under
+`runs/instance_quality_20260929/`; source and the experiment report are versioned.
+
 ## What changes
 
 The semantic model and its checkpoint remain frozen. For each candidate mask,

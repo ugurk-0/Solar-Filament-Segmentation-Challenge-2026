@@ -36,6 +36,8 @@ See the [experiment report](reports/pq_experiment_20260926.md) and [versioned me
 
 **Post-submission candidate:** a 40-observation calibration selected stronger confidence/size filtering without closing. On the reused 85-observation assessment, mean PQ reached **0.2714** and dataset PQ **0.2710**, both without TTA. The paired gain's 95% interval includes zero; no improved Kaggle score is claimed. See the [analysis](reports/reference_notebook_review_20260927.md) and [corrected-converter results](reports/refinement_results_20260928_fixed.json).
 
+**Latest completed experiment (September 29):** a learned instance-quality CNN trained on 128 observations reduced false detections, but mean assessment PQ fell to **0.2618** (dataset PQ **0.2694**). The candidate was rejected and the previous baseline retained. See the [method and measured comparison](docs/INSTANCE_QUALITY.md) and [full run report](reports/instance_quality_20260929.md). The test suite passes 27 tests; PQ 0.60 remains a target, not a measured result.
+
 The [automatic improvement report](reports/autoupgrade_20260928.md) records each subsequent hypothesis, configuration, epoch result, and keep/reject decision. `python autoupgrade.py` runs the current controlled batch after `python refine_postprocessing.py` completes. It preserves prior runs, validates exports, and screens candidates on fixed monitoring observations before further assessment.
 
 ## Pipeline
