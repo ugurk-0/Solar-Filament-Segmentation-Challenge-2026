@@ -10,7 +10,7 @@ Reproduce: `python experiment_annotation_medoid.py --smoke`, then `python experi
 
 ```json
 {
-  "status": "assessing",
+  "status": "complete",
   "target_pq": 0.6,
   "configuration": {
     "data_dir": "C:\\Users\\ugurk\\Documents\\kaggle\\filament-segmentation\\filament-segmentation-2026\\MAGFiLO_1.0_Kaggle_2026\\train",
@@ -128,6 +128,44 @@ Reproduce: `python experiment_annotation_medoid.py --smoke`, then `python experi
       "pq": 0.3449447311160747,
       "lr": 0.0
     }
-  ]
+  ],
+  "assessment": {
+    "selected": {
+      "n": 85,
+      "mean_pq": 0.26535162945412355,
+      "dataset_pq": 0.26286975478723024,
+      "sq": 0.6387444041601147,
+      "rq": 0.41154138192862566,
+      "tp": 271,
+      "fp": 398,
+      "fn": 377,
+      "pixel_dice": 0.608460385473707
+    },
+    "baseline": {
+      "n": 85,
+      "mean_pq": 0.271428171269003,
+      "dataset_pq": 0.27100326957602094,
+      "sq": 0.6427512490316036,
+      "rq": 0.4216300940438871,
+      "tp": 269,
+      "fp": 359,
+      "fn": 379
+    },
+    "paired": {
+      "mean_pq_delta": -0.006076541814879429,
+      "observation_bootstrap_95ci": [
+        -0.016508071507330736,
+        0.004690542912023417
+      ],
+      "date_block_bootstrap_95ci": [
+        -0.016445679863392102,
+        0.004474348673111181
+      ],
+      "n_observations": 85,
+      "n_dates": 84,
+      "interpretation": "Conditional on this split, training seed and selected model; not leaderboard uncertainty."
+    }
+  },
+  "promoted": false
 }
 ```
