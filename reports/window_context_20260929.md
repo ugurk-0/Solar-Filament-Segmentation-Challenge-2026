@@ -6,7 +6,7 @@ Hypothesis: matching the training crop context can improve inference with GroupN
 
 Command: `python experiment_window_context.py`
 
-Status: **calibrating**
+Status: **assessing_frozen_winner**
 
 | Window | Overlap | Threshold | Minimum area | Calibration mean PQ | Calibration pooled PQ |
 |---:|---:|---:|---:|---:|---:|
@@ -22,3 +22,9 @@ Status: **calibrating**
 | 768 | 256 | 0.8 | 500 | 0.253350 | 0.249743 |
 | 768 | 256 | 0.9 | 200 | 0.233187 | 0.237085 |
 | 768 | 256 | 0.9 | 500 | 0.247986 | 0.242499 |
+| 512 | 128 | 0.65 | 200 | 0.219942 | 0.230448 |
+| 512 | 128 | 0.65 | 500 | 0.242868 | 0.249132 |
+| 512 | 128 | 0.8 | 200 | 0.228583 | 0.240405 |
+| 512 | 128 | 0.8 | 500 | 0.249757 | 0.252604 |
+| 512 | 128 | 0.9 | 200 | 0.231811 | 0.234371 |
+| 512 | 128 | 0.9 | 500 | 0.253464 | 0.244517 |
