@@ -10,7 +10,7 @@ Reproduce: `python experiment_annotation_medoid.py --smoke`, then `python experi
 
 ```json
 {
-  "status": "training",
+  "status": "assessing",
   "target_pq": 0.6,
   "configuration": {
     "data_dir": "C:\\Users\\ugurk\\Documents\\kaggle\\filament-segmentation\\filament-segmentation-2026\\MAGFiLO_1.0_Kaggle_2026\\train",
@@ -90,7 +90,7 @@ Reproduce: `python experiment_annotation_medoid.py --smoke`, then `python experi
   },
   "selected_training_observations": 566,
   "leaderboard_score": null,
-  "completed_epochs": 5,
+  "completed_epochs": 6,
   "history": [
     {
       "epoch": 1,
@@ -121,6 +121,12 @@ Reproduce: `python experiment_annotation_medoid.py --smoke`, then `python experi
       "loss": 0.2708683698553289,
       "pq": 0.34215201760916736,
       "lr": 6.698729810778067e-07
+    },
+    {
+      "epoch": 6,
+      "loss": 0.26726945064461693,
+      "pq": 0.3449447311160747,
+      "lr": 0.0
     }
   ]
 }
