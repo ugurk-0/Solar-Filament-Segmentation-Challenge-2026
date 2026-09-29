@@ -6,7 +6,7 @@ Hypothesis: matching the training crop context can improve inference with GroupN
 
 Command: `python experiment_window_context.py`
 
-Status: **assessing_frozen_winner**
+Status: **complete**
 
 | Window | Overlap | Threshold | Minimum area | Calibration mean PQ | Calibration pooled PQ |
 |---:|---:|---:|---:|---:|---:|
@@ -28,3 +28,47 @@ Status: **assessing_frozen_winner**
 | 512 | 128 | 0.8 | 500 | 0.249757 | 0.252604 |
 | 512 | 128 | 0.9 | 200 | 0.231811 | 0.234371 |
 | 512 | 128 | 0.9 | 500 | 0.253464 | 0.244517 |
+
+Frozen-setting assessment:
+
+```json
+{
+  "baseline": {
+    "n": 85,
+    "mean_pq": 0.271428171269003,
+    "dataset_pq": 0.27100326957602094,
+    "sq": 0.6427512490316036,
+    "rq": 0.4216300940438871,
+    "tp": 269,
+    "fp": 359,
+    "fn": 379
+  },
+  "selected": {
+    "n": 85,
+    "mean_pq": 0.271428171269003,
+    "dataset_pq": 0.27100326957602094,
+    "sq": 0.6427512490316036,
+    "rq": 0.4216300940438871,
+    "tp": 269,
+    "fp": 359,
+    "fn": 379,
+    "pixel_dice": 0.6049729058047526
+  },
+  "paired_vs_baseline": {
+    "mean_pq_delta": -3.918434204559376e-18,
+    "observation_bootstrap_95ci": [
+      -1.0122621695111721e-17,
+      1.959217102279688e-18
+    ],
+    "date_block_bootstrap_95ci": [
+      -1.0077917336627165e-17,
+      2.074295248619904e-18
+    ],
+    "n_observations": 85,
+    "n_dates": 84,
+    "interpretation": "Conditional on this split, training seed and selected model; not leaderboard uncertainty."
+  },
+  "target_pq": 0.6,
+  "leaderboard_score": null
+}
+```
