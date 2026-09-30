@@ -6,7 +6,7 @@ Reproduce: `python experiment_solar_preprocessing.py --smoke`, then `python expe
 
 ```json
 {
-  "status": "assessing",
+  "status": "complete",
   "arms": {
     "raw_control": [
       {
@@ -61,7 +61,34 @@ Reproduce: `python experiment_solar_preprocessing.py --smoke`, then `python expe
   "parent_monitor_pq": 0.31377332193790564,
   "raw_monitor_pq": 0.3183885029572583,
   "corrected_monitor_pq": 0.35297060294840504,
-  "decision": "assessment_pending",
-  "promoted": false
+  "decision": "rejected_assessment",
+  "promoted": false,
+  "assessment": {
+    "summary": {
+      "n": 85,
+      "mean_pq": 0.2820779065382112,
+      "dataset_pq": 0.2707426771333483,
+      "sq": 0.6440977923973074,
+      "rq": 0.42034405385190726,
+      "tp": 281,
+      "fp": 408,
+      "fn": 367
+    },
+    "paired": {
+      "mean_pq_delta": 0.01064973526920815,
+      "observation_bootstrap_95ci": [
+        -0.008471030024939133,
+        0.03293694683861468
+      ],
+      "date_block_bootstrap_95ci": [
+        -0.008076719255326189,
+        0.03392266260702144
+      ],
+      "n_observations": 85,
+      "n_dates": 84,
+      "interpretation": "Conditional on this split, training seed and selected model; not leaderboard uncertainty."
+    }
+  },
+  "leaderboard_score": null
 }
 ```
