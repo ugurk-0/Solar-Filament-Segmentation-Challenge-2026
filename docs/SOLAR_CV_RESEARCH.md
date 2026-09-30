@@ -74,3 +74,33 @@ Checkpoints record `radial_strength` and are isolated under
 
 The smoke run completed both training arms and evaluation. All 35 tests passed
 before the full pilot. [Live experiment report](../reports/solar_preprocessing_20260930.md).
+
+## Completed pilot result
+
+Both training arms and the corrected-model assessment finished successfully.
+
+| Measurement | Retained parent | Raw fine-tuning control | Corrected fine-tuning |
+|---|---:|---:|---:|
+| Best monitoring mean PQ (16 observations) | 0.3138 | 0.3184 | **0.3530** |
+| Assessment mean PQ (85 observations) | 0.2714 | Not assessed | **0.2821** |
+| Assessment pooled PQ | **0.2710** | Not assessed | 0.2707 |
+| Assessment true positives | 269 | Not assessed | 281 |
+| Assessment false positives | 359 | Not assessed | 408 |
+| Assessment false negatives | 379 | Not assessed | 367 |
+
+The corrected candidate's mean-PQ gain is 0.01065, with a paired observation-
+bootstrap 95% interval of [-0.00847, 0.03294]. It fails the predeclared promotion
+gate: the interval includes zero and pooled PQ does not improve. The baseline
+submission is retained. No leaderboard submission or new test CSV was generated.
+
+The results support further investigation of this input representation, not a
+claim of a confirmed generalization gain. The correction recovered 12 matches
+but added 49 false positives. Two epochs on 128 observations provide a limited
+adaptation budget. Comparing corrected and raw arms on monitoring is a matched
+pilot; the assessment comparison is corrected fine-tuning versus the retained
+parent, so it does not isolate correction alone on those 85 observations.
+
+Next hypotheses, not yet implemented: geometry-channel conditioning; realistic
+blur/noise augmentation; then an instance-aware architecture if merge/split errors
+remain dominant. Any tuning of the new model needs a separate declared calibration
+protocol and must continue to disclose reuse of the research assessment set.

@@ -36,7 +36,9 @@ See the [experiment report](reports/pq_experiment_20260926.md) and [versioned me
 
 **Post-submission candidate:** a 40-observation calibration selected stronger confidence/size filtering without closing. On the reused 85-observation assessment, mean PQ reached **0.2714** and dataset PQ **0.2710**, both without TTA. The paired gain's 95% interval includes zero; no improved Kaggle score is claimed. See the [analysis](reports/reference_notebook_review_20260927.md) and [corrected-converter results](reports/refinement_results_20260928_fixed.json).
 
-**Latest completed experiment (September 30):** six variants of confident-seed mask growth were compared on calibration observations. None beat the existing extraction (best growth PQ **0.2639**, baseline **0.2700** on calibration). The retained baseline reproduced mean assessment PQ **0.2714**. See [PQ explained and measured results](docs/SEEDED_INSTANCES.md). All **31 tests pass**; PQ 0.60 remains a target, not a measured result.
+**Latest completed experiment (September 30):** literature-guided radial illumination correction plus matched fine-tuning raised mean research-assessment PQ to **0.2821**, versus the retained parent's **0.2714**. Pooled PQ slightly decreased (**0.2710 → 0.2707**) and the paired mean-PQ gain's confidence interval includes zero, so the submission baseline is retained. See [research sources, implementation and results](docs/SOLAR_CV_RESEARCH.md). All **35 tests pass**; PQ 0.60 remains a target, not a measured result.
+
+The earlier September 30 [seeded mask-growth experiment](docs/SEEDED_INSTANCES.md) rejected all six growth variants on calibration.
 
 The September 29 [instance-quality CNN experiment](docs/INSTANCE_QUALITY.md) was also rejected: it reduced false detections but mean assessment PQ fell to **0.2618** (dataset PQ **0.2694**).
 
