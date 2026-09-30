@@ -60,3 +60,27 @@ U-Net is unnecessary for this comparison.
 
 Implementation: [seeded_instances.py](../seeded_instances.py) and
 [experiment_seeded_instances.py](../experiment_seeded_instances.py).
+
+## Completed result: September 30, 2026
+
+All six growth variants were rejected on calibration. The existing extraction
+won, so no growth variant was selected for the 85-observation assessment.
+
+| Extraction | Lower threshold | Calibration mean PQ |
+|---|---:|---:|
+| Existing baseline | 0.80 | **0.269978** |
+| Grow and merge | 0.50 | 0.256260 |
+| Grow separately | 0.50 | 0.252511 |
+| Grow and merge | 0.65 | 0.259169 |
+| Grow separately | 0.65 | 0.254275 |
+| Grow and merge | 0.75 | 0.263919 |
+| Grow separately | 0.75 | 0.263919 |
+
+The selected baseline reproduced mean assessment PQ 0.271428 and pooled PQ
+0.271003. The report's `selected: null` means the baseline won; its identical
+`baseline` and `candidate` entries compare that same setting, not a growth variant.
+No new submission was generated and production defaults remain unchanged.
+
+Validation completed: four focused tests, the smoke evaluation, and all 31 tests
+in `python -m pytest tests -q`. The full experiment exited successfully.
+[Assessment report](../reports/seeded_instances_20260930.md).
