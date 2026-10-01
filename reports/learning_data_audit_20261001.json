@@ -1,0 +1,91 @@
+{
+  "image_records": 1154,
+  "physical_observations": 707,
+  "annotations": 8199,
+  "annotation_sets_per_observation": {
+    "1": 411,
+    "2": 145,
+    "3": 151
+  },
+  "train_records": 923,
+  "train_observations": 566,
+  "validation_observations": 141,
+  "train_validation_overlap": 0,
+  "training_annotations": 6586,
+  "categories": {
+    "1": "Left",
+    "2": "Right",
+    "3": "Unidentifiable",
+    "4": "Ambiguous"
+  },
+  "training_category_counts": {
+    "1": 2007,
+    "2": 2090,
+    "3": 2489
+  },
+  "training_area_pixels": {
+    "min": 60.0,
+    "p25": 677.0,
+    "median": 1231.5,
+    "p75": 2449.75,
+    "max": 37739.0
+  },
+  "training_annotations_below_500_pixels": 983,
+  "training_instances_per_record": {
+    "min": 1.0,
+    "p25": 4.0,
+    "median": 7.0,
+    "p75": 10.0,
+    "max": 26.0
+  },
+  "spine": {
+    "malformed": 0,
+    "outside_image": 0,
+    "vertex_count": {
+      "min": 2.0,
+      "p25": 7.0,
+      "median": 10.0,
+      "p75": 16.0,
+      "max": 122.0
+    },
+    "length_pixels": {
+      "min": 12.069431689188983,
+      "p25": 71.11469551948572,
+      "median": 111.31316254304006,
+      "p75": 181.350669901081,
+      "max": 1104.9543784960867
+    },
+    "vertices_inside_own_polygon_fraction": 0.9657986506405263
+  },
+  "training_stations": {
+    "Th": 86,
+    "Lh": 103,
+    "Mh": 98,
+    "Ch": 101,
+    "Uh": 79,
+    "Bh": 99
+  },
+  "test_stations": {
+    "Ch": 33,
+    "Mh": 26,
+    "Uh": 27,
+    "Th": 27,
+    "Lh": 34,
+    "Bh": 33
+  },
+  "training_years": {
+    "2011": 67,
+    "2012": 75,
+    "2013": 87,
+    "2014": 82,
+    "2015": 66,
+    "2016": 64,
+    "2017": 56,
+    "2018": 19,
+    "2019": 12,
+    "2020": 7,
+    "2021": 21,
+    "2022": 10
+  },
+  "caveat": "Geometry quality and label distributions are measured only on fold-1 training annotations; records are not independent observations."
+}
