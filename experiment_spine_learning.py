@@ -33,7 +33,9 @@ def fit(coco, records, monitor, cfg, save_progress):
             return history
         raise RuntimeError('Interrupted training preserved; use a new output directory')
     if (work / 'started.json').exists():
-        raise RuntimeError('Interrupted training preserved; use a new output directory')
+        if (work / 'fold1_best.pt').exists():
+            raise RuntimeError('Interrupted training preserved; use a new output directory')
+        (work / 'started.json').unlink()
     sol._write_json_atomically(work / 'started.json', vars(cfg))
     sol.seed_everything(cfg.seed + cfg.fold)
     valid = sol.build_limb_mask(cfg)
