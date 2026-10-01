@@ -6,7 +6,7 @@ Run `python experiment_spine_learning.py --smoke`, then `python experiment_spine
 
 ```json
 {
-  "status": "training",
+  "status": "assessing",
   "arms": {
     "observation_control": [
       {
@@ -50,9 +50,25 @@ Run `python experiment_spine_learning.py --smoke`, then `python experiment_spine
         "spine_loss": 0.07872684452807788,
         "monitor_pq": 0.32205260028762217,
         "seconds": 405.875
+      },
+      {
+        "epoch": 3,
+        "mean_loss": 0.27673534884417017,
+        "segmentation_loss": 0.2693302291692251,
+        "spine_loss": 0.07405119632574805,
+        "monitor_pq": 0.3172414252685115,
+        "seconds": 397.65600000001723
       }
     ]
   },
-  "active_arm": "spine_auxiliary"
+  "active_arm": "spine_auxiliary",
+  "parent_monitor_pq": 0.31377332193790564,
+  "best_monitor": {
+    "observation_control": 0.32171449024807386,
+    "spine_auxiliary": 0.32289983001064393
+  },
+  "selected": "spine_auxiliary",
+  "decision": "assessment_pending",
+  "promoted": false
 }
 ```
