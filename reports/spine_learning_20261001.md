@@ -7,7 +7,18 @@ Run `python experiment_spine_learning.py --smoke`, then `python experiment_spine
 ```json
 {
   "status": "training",
-  "arms": {},
+  "arms": {
+    "observation_control": [
+      {
+        "epoch": 1,
+        "mean_loss": 0.26371800955450786,
+        "segmentation_loss": 0.26371800955450786,
+        "spine_loss": 0.0,
+        "monitor_pq": 0.32171449024807386,
+        "seconds": 211.4220000000205
+      }
+    ]
+  },
   "active_arm": "observation_control"
 }
 ```
