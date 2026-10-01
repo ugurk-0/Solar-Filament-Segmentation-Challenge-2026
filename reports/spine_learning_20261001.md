@@ -33,6 +33,16 @@ Run `python experiment_spine_learning.py --smoke`, then `python experiment_spine
         "monitor_pq": 0.3155607584058949,
         "seconds": 190.64100000000326
       }
+    ],
+    "spine_auxiliary": [
+      {
+        "epoch": 1,
+        "mean_loss": 0.2737346515191107,
+        "segmentation_loss": 0.26372313994400914,
+        "spine_loss": 0.10011511565228864,
+        "monitor_pq": 0.32289983001064393,
+        "seconds": 469.64100000000326
+      }
     ]
   },
   "active_arm": "spine_auxiliary"
