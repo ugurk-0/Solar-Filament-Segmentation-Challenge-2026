@@ -6,7 +6,7 @@ Run `python experiment_spine_learning.py --smoke`, then `python experiment_spine
 
 ```json
 {
-  "status": "assessing",
+  "status": "complete",
   "arms": {
     "observation_control": [
       {
@@ -68,7 +68,34 @@ Run `python experiment_spine_learning.py --smoke`, then `python experiment_spine
     "spine_auxiliary": 0.32289983001064393
   },
   "selected": "spine_auxiliary",
-  "decision": "assessment_pending",
-  "promoted": false
+  "decision": "rejected_assessment",
+  "promoted": false,
+  "assessment": {
+    "summary": {
+      "n": 85,
+      "mean_pq": 0.2678590180472862,
+      "dataset_pq": 0.26800523184274033,
+      "sq": 0.640731026498107,
+      "rq": 0.418280402788536,
+      "tp": 270,
+      "fp": 373,
+      "fn": 378
+    },
+    "paired": {
+      "mean_pq_delta": -0.003569153221716838,
+      "observation_bootstrap_95ci": [
+        -0.007764917204432637,
+        -4.508300700872966e-05
+      ],
+      "date_block_bootstrap_95ci": [
+        -0.0078089855050171315,
+        6.179037009103074e-05
+      ],
+      "n_observations": 85,
+      "n_dates": 84,
+      "interpretation": "Conditional on this split, training seed and selected model; not leaderboard uncertainty."
+    }
+  },
+  "leaderboard_score": null
 }
 ```
