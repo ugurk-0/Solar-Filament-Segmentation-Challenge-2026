@@ -81,9 +81,7 @@ class InstanceLabelDataset(sol.FilamentDataset):
             return cached
         image, mask, auxiliary = super()._load_full(img_id)
         labels = build_instance_labels(self.coco, img_id, mask.shape[0], mask.shape[1])
-        payload = (image, mask, auxiliary, labels)
-        self._cache[img_id] = payload
-        return payload
+        return image, mask, auxiliary, labels
 
     def __getitem__(self, i):
         image, mask, auxiliary, labels = self._load_full(self.ids[i])
