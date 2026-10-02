@@ -55,22 +55,30 @@ def embedding_to_instances(embeddings, probability, limb, threshold=0.8,
         return []
     instances = []
     for component_id in range(1, count + 1):
-        coordinates = np.argwhere(components == component_id)
+        component_mask = components == component_id
+        coordinates = np.argwhere(component_mask)
         if len(coordinates) < min_area:
             continue
-        values = embeddings[:, components == component_id].T.astype(np.float32, copy=False)
-        if len(values) > max_cluster_points:
-            sample_indices = np.linspace(0, len(values) - 1, max_cluster_points, dtype=int)
-            sample_values = values[sample_indices]
+        if len(coordinates) > max_cluster_points:
+            sample_indices = np.linspace(0, len(coordinates) - 1, max_cluster_points, dtype=int)
+            sample_coordinates = coordinates[sample_indices]
         else:
-            sample_indices = np.arange(len(values))
-            sample_values = values
+            sample_coordinates = coordinates
+        sample_values = embeddings[:, sample_coordinates[:, 0], sample_coordinates[:, 1]].T.astype(
+            np.float32, copy=False
+        )
         labels = DBSCAN(eps=eps, min_samples=min_samples, n_jobs=1).fit_predict(sample_values)
         cluster_ids = [label for label in sorted(set(labels)) if label >= 0]
         if not cluster_ids:
             continue
         centers = np.stack([sample_values[labels == label].mean(0) for label in cluster_ids])
-        assignments = np.linalg.norm(values[:, None, :] - centers[None, :, :], axis=2).argmin(1)
+        assignments = np.empty(len(coordinates), dtype=np.int32)
+        for start in range(0, len(coordinates), max_cluster_points):
+            stop = min(start + max_cluster_points, len(coordinates))
+            values = embeddings[:, coordinates[start:stop, 0], coordinates[start:stop, 1]].T
+            assignments[start:stop] = np.linalg.norm(
+                values[:, None, :] - centers[None, :, :], axis=2
+            ).argmin(1)
         for cluster_index in range(len(cluster_ids)):
             pixels = coordinates[assignments == cluster_index]
             if len(pixels) < min_area:

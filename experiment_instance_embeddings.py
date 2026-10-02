@@ -315,7 +315,9 @@ def fit_arm(root, arm, coco, train_ids, monitor_ids, cfg):
         raise RuntimeError("Interrupted training preserved; use a new experiment directory")
     started = work / "started.json"
     if started.exists():
-        raise RuntimeError("Interrupted training preserved; use a new experiment directory")
+        if (work / "fold1_best.pt").exists() or history_path.exists():
+            raise RuntimeError("Interrupted training preserved; use a new experiment directory")
+        started.unlink()
     sol._write_json_atomically(started, vars(cfg))
     sol.seed_everything(cfg.seed + cfg.fold)
     train_loader, _ = make_embedding_loader(coco, train_ids, cfg, True)
