@@ -1,5 +1,6 @@
 """Controlled experiment for instance-label embeddings on filament segmentation."""
 import argparse
+import copy
 from dataclasses import replace
 import gc
 import hashlib
@@ -207,9 +208,14 @@ def predict_full_embeddings(model, image, cfg):
     return probability, embeddings
 
 
+def predict_embedding_instances(model, image, cfg, limb, parameters):
+    probability, embeddings = predict_full_embeddings(model, image, cfg)
+    return ie.embedding_to_instances(embeddings, probability, limb, **parameters)
+
+
 def evaluate_rows(model, dataset, predict_instances, ema=None, partial_path=None, signature=None):
     if ema is not None:
-        model = torch.deepcopy(model)
+        model = copy.deepcopy(model)
         ema.copy_to(model)
     reports = []
     cached = {}
@@ -340,7 +346,7 @@ def fit_arm(root, arm, coco, train_ids, monitor_ids, cfg):
         return evaluate_rows(
             model,
             monitor_dataset,
-            lambda current, image, limb: ie.embedding_to_instances(*predict_full_embeddings(current, image, cfg), limb, **EMBED_DEFAULT),
+            lambda current, image, limb: predict_embedding_instances(current, image, cfg, limb, EMBED_DEFAULT),
             ema,
         )
 
@@ -497,8 +503,8 @@ def main(smoke=False):
             rows = evaluate_rows(
                 candidate_model,
                 calibration_dataset,
-                lambda current, image, limb, current_setting=setting: ie.embedding_to_instances(
-                    *predict_full_embeddings(current, image, candidate_cfg), limb, **current_setting
+                lambda current, image, limb, current_setting=setting: predict_embedding_instances(
+                    current, image, candidate_cfg, limb, current_setting
                 ),
                 partial_path=root / f"calibration_{setting['threshold']}_{setting['min_area']}_{setting['eps']}_{setting['min_samples']}.json",
                 signature=setting,
@@ -522,7 +528,7 @@ def main(smoke=False):
         candidate_rows = evaluate_rows(
             candidate_model,
             audit_dataset,
-            lambda current, image, limb: ie.embedding_to_instances(*predict_full_embeddings(current, image, candidate_cfg), limb, **selected["parameters"]),
+            lambda current, image, limb: predict_embedding_instances(current, image, candidate_cfg, limb, selected["parameters"]),
             partial_path=root / "audit_embedding_partial.json",
             signature={"arm": "embedding", "parameters": selected["parameters"]},
         )
