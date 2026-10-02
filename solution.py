@@ -116,6 +116,10 @@ class Cfg:
     w_dice:  float = 0.3
     w_cld:   float = 0.4
     w_spine: float = 0.0
+    w_embed: float = 0.0
+    embedding_dim: int = 0
+    embed_delta_var: float = 0.5
+    embed_delta_dist: float = 1.5
     pos_weight_cap: float = 5.0
     # inference / post-processing
     tta:          bool = True
@@ -340,8 +344,9 @@ class FilamentUNet(nn.Module):
             self.skip_red.append(red if sc else None); cin = cout
         self.blocks, self.gates = nn.ModuleList(blocks), nn.ModuleList(gates)
         self.head_seg, self.head_spine = nn.Conv2d(cin, 1, 1), nn.Conv2d(cin, 1, 1)
+        self.head_embed = nn.Conv2d(cin, cfg.embedding_dim, 1) if cfg.embedding_dim else None
 
-    def forward(self, x):
+    def _decode(self, x):
         H, W = x.shape[-2:]
         feats = self.enc(x)
         r2f = dict(zip(self.enc.feature_info.reduction(), feats))
@@ -354,11 +359,29 @@ class FilamentUNet(nn.Module):
                 out = blk(torch.cat([out, sk], 1))
             else:
                 out = blk(out)
+        return out, (H, W)
+
+    def forward(self, x):
+        out, shape = self._decode(x)
+        H, W = shape
         seg, spn = self.head_seg(out), self.head_spine(out)
         if seg.shape[-2:] != (H, W):
             seg = F.interpolate(seg, (H, W), mode="bilinear", align_corners=False)
             spn = F.interpolate(spn, (H, W), mode="bilinear", align_corners=False)
         return seg, spn
+
+    def forward_with_embeddings(self, x):
+        if self.head_embed is None:
+            raise ValueError("embedding_dim must be positive for embedding output")
+        out, shape = self._decode(x)
+        H, W = shape
+        seg, spn, emb = self.head_seg(out), self.head_spine(out), self.head_embed(out)
+        if seg.shape[-2:] != (H, W):
+            size = (H, W)
+            seg = F.interpolate(seg, size, mode="bilinear", align_corners=False)
+            spn = F.interpolate(spn, size, mode="bilinear", align_corners=False)
+            emb = F.interpolate(emb, size, mode="bilinear", align_corners=False)
+        return seg, spn, F.normalize(emb, dim=1)
 
 
 # --------------------------------------------------------------------------- #
@@ -396,8 +419,13 @@ def soft_cldice(pred, tgt, vm, iters=8, smooth=1.0):
     return (1 - 2 * prec * rec / (prec + rec).clamp_min(1e-7)).mean()
 
 
-def criterion(model, x, y, sd, vm, cfg: Cfg):
-    logits, spn = model(x)
+def criterion(model, x, y, sd, vm, cfg: Cfg, instance_labels=None):
+    if cfg.w_embed:
+        if instance_labels is None:
+            raise ValueError("instance_labels are required when w_embed is enabled")
+        logits, spn, embeddings = model.forward_with_embeddings(x)
+    else:
+        logits, spn = model(x)
     logits = logits.float()
     prob = torch.sigmoid(logits)
     n = vm.sum().clamp(min=1.0)
@@ -413,6 +441,10 @@ def criterion(model, x, y, sd, vm, cfg: Cfg):
             + cfg.w_cld * soft_cldice(prob, y, vm))
     if cfg.w_spine:
         loss = loss + cfg.w_spine * F.mse_loss(spn * vm, sd * vm)
+    if cfg.w_embed:
+        from instance_embeddings import discriminative_embedding_loss
+        loss = loss + cfg.w_embed * discriminative_embedding_loss(
+            embeddings, instance_labels, vm[:, 0], cfg.embed_delta_var, cfg.embed_delta_dist)
     return loss, prob
 
 
