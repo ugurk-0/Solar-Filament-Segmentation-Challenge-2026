@@ -45,7 +45,7 @@ def discriminative_embedding_loss(embeddings, labels, valid, delta_var=0.5,
 
 def embedding_to_instances(embeddings, probability, limb, threshold=0.8,
                            min_area=500, eps=0.7, min_samples=8,
-                           max_cluster_points=20000):
+                           max_cluster_points=2048):
     """Cluster foreground pixels in embedding space and return binary masks."""
     if embeddings.ndim != 3 or probability.shape != embeddings.shape[1:]:
         raise ValueError("Embedding and probability coordinates must match")
@@ -67,7 +67,8 @@ def embedding_to_instances(embeddings, probability, limb, threshold=0.8,
         sample_values = embeddings[:, sample_coordinates[:, 0], sample_coordinates[:, 1]].T.astype(
             np.float32, copy=False
         )
-        labels = DBSCAN(eps=eps, min_samples=min_samples, n_jobs=1).fit_predict(sample_values)
+        labels = DBSCAN(eps=eps, min_samples=min_samples, algorithm="ball_tree",
+                n_jobs=1).fit_predict(sample_values)
         cluster_ids = [label for label in sorted(set(labels)) if label >= 0]
         if not cluster_ids:
             continue

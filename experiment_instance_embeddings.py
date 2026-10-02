@@ -413,7 +413,7 @@ def load_best_model(path, cfg):
 
 def main(smoke=False):
     torch.set_num_threads(4)
-    root = ROOT / "smoke" if smoke else ROOT
+    root = ROOT / "smoke_v2" if smoke else ROOT
     root.mkdir(parents=True, exist_ok=True)
     cfg = default_cfg(root, smoke)
     coco, train_ids, validation_ids = sol.get_fold(replace(cfg, limit=0))
