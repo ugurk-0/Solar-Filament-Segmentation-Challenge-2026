@@ -2,6 +2,7 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+from scipy import ndimage
 from sklearn.cluster import DBSCAN
 
 
@@ -43,24 +44,38 @@ def discriminative_embedding_loss(embeddings, labels, valid, delta_var=0.5,
 
 
 def embedding_to_instances(embeddings, probability, limb, threshold=0.8,
-                           min_area=500, eps=0.7, min_samples=8):
+                           min_area=500, eps=0.7, min_samples=8,
+                           max_cluster_points=20000):
     """Cluster foreground pixels in embedding space and return binary masks."""
     if embeddings.ndim != 3 or probability.shape != embeddings.shape[1:]:
         raise ValueError("Embedding and probability coordinates must match")
     foreground = (probability > threshold) & limb
-    coordinates = np.argwhere(foreground)
-    if len(coordinates) < min_samples:
+    components, count = ndimage.label(foreground)
+    if count == 0:
         return []
-    values = embeddings[:, foreground].T.astype(np.float32, copy=False)
-    labels = DBSCAN(eps=eps, min_samples=min_samples, n_jobs=1).fit_predict(values)
     instances = []
-    for label in sorted(set(labels)):
-        if label < 0:
+    for component_id in range(1, count + 1):
+        coordinates = np.argwhere(components == component_id)
+        if len(coordinates) < min_area:
             continue
-        pixels = coordinates[labels == label]
-        if len(pixels) < min_area:
+        values = embeddings[:, components == component_id].T.astype(np.float32, copy=False)
+        if len(values) > max_cluster_points:
+            sample_indices = np.linspace(0, len(values) - 1, max_cluster_points, dtype=int)
+            sample_values = values[sample_indices]
+        else:
+            sample_indices = np.arange(len(values))
+            sample_values = values
+        labels = DBSCAN(eps=eps, min_samples=min_samples, n_jobs=1).fit_predict(sample_values)
+        cluster_ids = [label for label in sorted(set(labels)) if label >= 0]
+        if not cluster_ids:
             continue
-        mask = np.zeros(probability.shape, dtype=bool)
-        mask[pixels[:, 0], pixels[:, 1]] = True
-        instances.append(mask)
+        centers = np.stack([sample_values[labels == label].mean(0) for label in cluster_ids])
+        assignments = np.linalg.norm(values[:, None, :] - centers[None, :, :], axis=2).argmin(1)
+        for cluster_index in range(len(cluster_ids)):
+            pixels = coordinates[assignments == cluster_index]
+            if len(pixels) < min_area:
+                continue
+            mask = np.zeros(probability.shape, dtype=bool)
+            mask[pixels[:, 0], pixels[:, 1]] = True
+            instances.append(mask)
     return instances
