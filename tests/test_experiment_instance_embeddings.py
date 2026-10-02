@@ -43,8 +43,9 @@ def test_instance_dataset_keeps_labels_aligned_through_spatial_transforms(monkey
     labels[2:4, 10:12] = 5
     dataset._cache[3] = (image, mask, np.zeros((16, 16), np.float32), labels)
     values = iter([0.9, 0.1, 0.9, 0.9])
+    starts = iter([2, 8])
     monkeypatch.setattr(exp.random, "random", lambda: next(values))
-    monkeypatch.setattr(exp.random, "randint", lambda low, high: 2)
+    monkeypatch.setattr(exp.random, "randint", lambda low, high: next(starts))
     monkeypatch.setattr(exp.random, "randrange", lambda n: 1)
     x, y, _, vm, instance_labels = dataset[0]
     assert torch.equal((x > 0.5)[0], y[0].bool())
