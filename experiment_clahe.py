@@ -44,7 +44,7 @@ def digest(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def write_report(state):
+def write_report(state, smoke):
     REPORT.write_text(
         "# CLAHE matched fine-tuning reproduction\n\n"
         "Hypothesis: a controlled CLAHE reproduction improves local contrast enough to "
@@ -54,6 +54,7 @@ def write_report(state):
         "remains restricted to 16 monitor observations, calibration remains 40 observations, "
         "and assessment remains 85 reused research observations. No test images or labels "
         "are used.\n\n"
+        f"Current status was recorded from {'`runs/clahe_20261002/smoke`' if smoke else '`runs/clahe_20261002`'}.\n\n"
         "Reproduce: `python experiment_clahe.py --smoke`, then `python experiment_clahe.py`. "
         "CLAHE checkpoints require ClaheDataset or explicit `clahe_equalize` before inference; "
         "the ordinary CLI does not apply that transform.\n\n"
@@ -129,8 +130,7 @@ def main(smoke=False):
 
     def save():
         sol._write_json_atomically(state_path, state)
-        if not smoke:
-            write_report(state)
+        write_report(state, smoke)
 
     def fixed_fold(current_cfg):
         if current_cfg.fold != cfg.fold:
