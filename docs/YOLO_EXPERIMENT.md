@@ -24,12 +24,16 @@ model leaves room for 1536-pixel inputs on the local 6 GB RTX 3060 Laptop GPU.
 We prioritize image resolution because many filaments are narrow. The larger
 models suggested in the previous handoff remain untested here.
 
-Training uses mixed precision, batch 1, nominal batch 8 with gradient
+Training uses mixed precision, batch 2, nominal batch 8 with gradient
 accumulation, AdamW, and a cosine learning-rate schedule. The predeclared
 budget is at most 20 epochs, with PQ-based early stopping after at least 8
 epochs and 6 epochs without a monitoring improvement greater than 0.001.
 Worker count is zero to avoid Windows worker startup and memory overhead.
 Prepared PNGs and converted labels are cached on disk.
+An initial batch-1 capacity probe used about 2.8 GB of the 6 GB GPU at 1536
+pixels. It was stopped before completing its first epoch, archived, and
+restarted from the same pretrained weights with batch 2 to use that headroom.
+It is not counted as a completed training experiment or a PQ result.
 
 The head produces low-resolution mask prototypes and per-detection mask
 coefficients. Their linear combination is resized to the original 2048-pixel

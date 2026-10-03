@@ -76,7 +76,7 @@ def main(smoke=False):
         train = [i for i in train if sol.base_name(coco.imgs[i]['file_name']) in keys]
         split = {key: values[:2] for key, values in split.items()}
     imgsz, epochs = (640, 1) if smoke else (1536, 20)
-    protocol = dict(smoke=smoke, train_ids=train, split=split, imgsz=imgsz, epochs=epochs,
+    protocol = dict(smoke=smoke, train_ids=train, split=split, imgsz=imgsz, epochs=epochs, batch=2,
                     ultralytics=ultralytics.__version__, model='yolo11n-seg.pt',
                     selection='Epoch: mean PQ on 16 monitor observations at confidence .1, area 128. Calibration: 40. Assessment: 85 reused.',
                     stopping='At least 8 epochs, stop after 6 epochs without monitor PQ improvement >0.001; maximum 20.',
@@ -98,7 +98,7 @@ def main(smoke=False):
         if not smoke:
             Path('reports/yolo11n_20261003.md').write_text(
                 '# YOLO11n instance-segmentation experiment\n\n'
-                'Pretrained nano model, 1536-pixel full disk, batch 1 and nominal batch 8, AMP, '
+                'Pretrained nano model, 1536-pixel full disk, batch 2 and nominal batch 8, AMP, '
                 'one actual annotation set per training observation. No geometric/mosaic augmentation; '
                 'photometric value augmentation only. Separate masks, support-aware assignment, classification '
                 'and mask losses. Native-coordinate output masks, confidence-ordered non-overlap ownership. '
@@ -153,7 +153,7 @@ def main(smoke=False):
             if previous.exists():
                 raise RuntimeError('Interrupted training retained; do not overwrite it')
             model.train(trainer=SupportSegmentationTrainer, data=str(data.resolve()), epochs=epochs,
-                        imgsz=imgsz, batch=1, nbs=8, workers=0, cache=False, device=0,
+                        imgsz=imgsz, batch=2, nbs=8, workers=0, cache=False, device=0,
                         optimizer='AdamW', lr0=.001, lrf=.05, warmup_epochs=1,
                         cos_lr=True, amp=True, deterministic=True, seed=2026,
                         mosaic=0, mixup=0, copy_paste=0, degrees=0, translate=0,
