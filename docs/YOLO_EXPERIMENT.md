@@ -6,6 +6,17 @@ connected components. This is a test of **YOLO11n-seg**, not a claim that every
 YOLO architecture will behave the same way. Its measured results and training
 history are in the [experiment report](../reports/yolo11n_20261003.md).
 
+There is task-specific precedent: [Diercke et al.](https://arxiv.org/abs/2402.15407)
+combine object detection and U-Net segmentation for solar H-alpha observations.
+The public [HeShen competition implementation](https://github.com/HeShen-1/filament-segmentation-2026)
+uses YOLO11m-seg at 1536 pixels followed by a seed-conditioned crop refiner.
+That author reports 0.3593 five-fold mean PQ and 0.35 public leaderboard PQ for
+their respective systems. These are external results with different models,
+splits, and fusion settings; they are not measurements of this repository.
+Our smaller direct-mask experiment first tests whether useful instance
+proposals can be learned within the local compute budget. Crop refinement is
+a follow-up hypothesis, not an implemented result here.
+
 ## Model and efficiency choices
 
 The starting point is the official COCO-pretrained `yolo11n-seg.pt`. The nano

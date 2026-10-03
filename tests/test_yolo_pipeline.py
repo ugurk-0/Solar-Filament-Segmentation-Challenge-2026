@@ -58,3 +58,26 @@ def test_chunked_prediction_matches_upstream_native_masks():
     actual = predictor.construct_result(pred.clone(), img, original, 'test.png', proto)
     assert torch.equal(expected.boxes.data, actual.boxes.data)
     assert torch.equal(expected.masks.data, actual.masks.data)
+
+
+def test_support_classification_and_assignment_exclude_invalid_anchors():
+    pytest.importorskip('ultralytics')
+    import torch
+    from yolo_training import SupportBCE, SupportAssigner
+    valid = torch.tensor([[[1.], [0.]]])
+    logits = torch.zeros((1, 2, 1), requires_grad=True)
+    loss = SupportBCE(reduction='none')
+    loss.valid = valid
+    loss(logits, torch.ones_like(logits)).sum().backward()
+    assert logits.grad[0, 0, 0] != 0 and logits.grad[0, 1, 0] == 0
+
+    class AssignAll(torch.nn.Module):
+        def forward(self):
+            return (torch.zeros((1, 2)), torch.ones((1, 2, 4)), torch.ones((1, 2, 1)),
+                    torch.ones((1, 2), dtype=torch.bool), torch.zeros((1, 2), dtype=torch.long))
+
+    assigner = SupportAssigner(AssignAll())
+    assigner.valid = valid
+    _, _, scores, foreground, _ = assigner()
+    assert torch.equal(scores, valid)
+    assert torch.equal(foreground, valid.squeeze(-1).bool())
