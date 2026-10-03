@@ -26,7 +26,7 @@ def digest(path):
 
 
 def prediction(model, dataset, image_id, imgsz):
-    image, _, _ = dataset._load_full(image_id)
+    image = sol.load_image(Path(dataset.cfg.data_dir) / 'train_images' / dataset.coco.imgs[image_id]['file_name'])
     image = np.rint(image * dataset.limb * 255).astype(np.uint8)
     result = model.predict(cv2.cvtColor(image, cv2.COLOR_GRAY2BGR), imgsz=imgsz, conf=.01,
                            iou=.7, max_det=100, retina_masks=True, device=0, half=True,

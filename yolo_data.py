@@ -7,7 +7,8 @@ import solution as sol
 
 
 def mask_polygon(mask):
-    contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Include hole boundaries: dropping them can substantially inflate thin masks.
+    contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     contours = [c.reshape(-1, 2) for c in contours if len(c) >= 3]
     if not contours:
         raise ValueError('Nonempty instance has no valid polygon')
@@ -66,7 +67,7 @@ def prepare_dataset(coco, training, monitoring, cfg, output):
         labels.mkdir(parents=True, exist_ok=True)
         dataset = sol.FilamentDataset(coco, ids, cfg, False, valid)
         for number, image_id in enumerate(ids, 1):
-            image, _, _ = dataset._load_full(image_id)
+            image = sol.load_image(Path(cfg.data_dir) / 'train_images' / coco.imgs[image_id]['file_name'])
             image = np.rint(image * valid * 255).astype(np.uint8)
             if not cv2.imwrite(str(images / f'{image_id}.png'), image, [cv2.IMWRITE_PNG_COMPRESSION, 1]):
                 raise OSError('Could not write YOLO image')

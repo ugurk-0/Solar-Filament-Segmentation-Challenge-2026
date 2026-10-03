@@ -10,6 +10,18 @@ def test_polygon_roundtrip():
     assert polygon.shape[1] == 2 and iou == 1
 
 
+def test_polygon_conversion_preserves_internal_holes():
+    pytest.importorskip('ultralytics')
+    import cv2
+    mask = np.zeros((64, 64), bool)
+    mask[8:50, 10:55] = True
+    mask[20:38, 25:42] = False
+    polygon, iou = mask_polygon(mask)
+    restored = np.zeros(mask.shape, np.uint8)
+    cv2.fillPoly(restored, [polygon.astype(np.int32)], 1)
+    assert iou == 1 and np.array_equal(restored.astype(bool), mask)
+
+
 def test_instance_ownership_support_and_small_masks():
     a = np.zeros((32, 32), bool)
     a[2:12, 2:12] = True

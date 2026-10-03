@@ -61,6 +61,10 @@ a separate object. Polygon conversion checks the mask round-trip IoU and
 fails below 0.98. The preparation manifest records the observed minimum and
 mean, including any contour bridges needed for disconnected pieces. Evaluation
 uses the original rasterized annotations, not the converted YOLO labels.
+An initial preparation pass found an instance with internal holes: extracting
+only its outer boundary produced IoU 0.972249 and correctly stopped the run.
+The converter now includes the hole boundaries; that instance round-trips
+exactly (IoU 1.0), and a synthetic hole regression test guards this behavior.
 
 Zeroing the image alone would still teach the classifier from unannotated
 regions. The custom loss therefore excludes unsupported classification anchors,
