@@ -3,6 +3,7 @@
 Written against ultralytics 8.3.253; no upstream implementation is copied.
 Fixed square geometry is required. Photometric augmentation remains available.
 """
+from functools import lru_cache
 import torch
 import torch.nn.functional as F
 from ultralytics.utils.loss import v8SegmentationLoss
@@ -12,6 +13,7 @@ from ultralytics.models.yolo.segment.train import SegmentationTrainer
 import solution as sol
 
 
+@lru_cache(maxsize=12)
 def support_tensor(size, device):
     cfg = sol.Cfg(img_size=size, disk_radius=950 * size / 2048)
     return torch.from_numpy(sol.build_limb_mask(cfg)).to(device).float()
@@ -57,7 +59,7 @@ class SupportSegmentationLoss(v8SegmentationLoss):
     @staticmethod
     def single_mask_loss(gt_mask, pred, proto, xyxy, area):
         logits = torch.einsum('in,nhw->ihw', pred, proto)
-        support = support_tensor(proto.shape[-1], proto.device)[None].expand(len(gt_mask), -1, -1)
+        support = support_tensor(proto.shape[-1], proto.device)[None].expand(len(gt_mask), -1, -1).clone()
         support = crop_mask(support, xyxy)
         error = F.binary_cross_entropy_with_logits(logits, gt_mask, reduction='none')
         return ((error * support).sum((1, 2)) / support.sum((1, 2)).clamp_min(1)).sum()
