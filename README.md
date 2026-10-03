@@ -6,7 +6,7 @@ Used Codex GPT 6 Astra to assist me in this work.
 
 A PyTorch pipeline that identifies individual solar filaments in 2048 ? 2048 GONG H-alpha images. Built for the [Solar Filament Segmentation Challenge 2026](https://www.kaggle.com/competitions/filament-segmentation-2026), it covers training, instance extraction, Panoptic Quality (PQ) evaluation, and competition CSV export.
 
-**Measured result:** mean local PQ increased from **0.0706 to 0.2632** across post-processing calibration and guided fine-tuning. This is an exploratory single-fold comparison on 85 observations. The author reports a **0.24 Kaggle score** for the first submission. See the [post-submission experiment](reports/reference_notebook_review_20260927.md) for the next improvement attempt and reference-notebook review.
+**Best retained research result:** **0.2891 mean PQ / 0.2878 pooled PQ**, using Round-5 U-Net probabilities and calibrated skeleton-endpoint merging. This is an exploratory comparison on 85 reused local observations, not a leaderboard score. The last user-reported Kaggle score is **0.24** for an earlier submission. See the [October 3 handoff](reports/handoff_20261003.md) and [merge experiment](reports/skeleton_merge_20261003.md).
 
 ![Local assessment results](docs/assets/results.png)
 
@@ -19,7 +19,33 @@ A PyTorch pipeline that identifies individual solar filaments in 2048 ? 2048 GON
 
 ## Results and decisions
 
-All rows use the same 85-observation assessment subset and inference without TTA. Connected components use threshold 0.65 and minimum area 200, calibrated on 40 separate observations.
+Methods below are grouped by the evidence available. Assessment values use the same 85-observation research subset, without TTA; monitoring/calibration and smoke values are explicitly labeled and are not comparable to assessment scores. No new leaderboard result is inferred from them.
+
+| Method / process | Mean assessment PQ | Pooled assessment PQ | Result and evidence |
+|---|---:|---:|---|
+| Original checkpoint + distance watershed | 0.0706 | 0.0706 | Fragmented filaments; replaced |
+| Original checkpoint + calibrated components | 0.2073 | 0.2177 | Large improvement from instance extraction |
+| Round-1 guided fine-tuning | 0.2454 | 0.2511 | Improved over original calibrated model |
+| Round-5 guided fine-tuning | 0.2632 | 0.2626 | Retained neural checkpoint; [training report](reports/pq_experiment_20260926.md) |
+| Stricter confidence/size filtering, no closing | 0.2714 | 0.2710 | Retained components reference; [audit](reports/reference_notebook_review_20260927.md) |
+| Less clDice, more Dice | 0.2736 | 0.2714 | Did not meet promotion gate; [batch report](reports/autoupgrade_20260928.md) |
+| More random training crops | 0.2702 | 0.2650 | Rejected; same batch report |
+| Annotation-medoid training | 0.2654 | 0.2629 | Rejected; [report](reports/annotation_medoid_20260929.md) |
+| Inference windows 512/768/1024 | 0.2714 | 0.2710 | Existing 1024 configuration selected; [report](reports/window_context_20260929.md) |
+| Instance-quality CNN filter | 0.2618 | 0.2694 | Lost too many correct detections; [method](docs/INSTANCE_QUALITY.md) |
+| Confident-seed mask growth, six variants | — | — | Best calibration 0.2639 vs baseline 0.2700; no growth variant advanced; [report](docs/SEEDED_INSTANCES.md) |
+| Radial illumination correction + fine-tuning | 0.2821 | 0.2707 | Mean gain uncertain, pooled PQ lower; not promoted; [research](docs/SOLAR_CV_RESEARCH.md) |
+| Observation-balanced sampling + spine auxiliary loss | 0.2679 | 0.2680 | Selected spine arm rejected on assessment; control monitor 0.3217, spine monitor 0.3229; [report](reports/spine_learning_20261001.md) |
+| CLAHE + short fine-tuning | — | — | Smoke-only training: monitoring 0.1823 vs raw 0.3138; no full run; [report](reports/clahe_20261002.md) |
+| Instance-embedding head | — | — | Smoke execution only; no full assessment; [runner](experiment_instance_embeddings.py) |
+| **Skeleton-endpoint merging** | **0.2891** | **0.2878** | **Promoted research candidate**; [report](reports/skeleton_merge_20261003.md) |
+| YOLO11 instance segmentation | Pending | Pending | New controlled experiment; no measured gain yet |
+
+Skeleton merging used endpoint distance at most 50 pixels, direction cosine at least 0.8, and mean gap probability at least 0.3, selected on 40 calibration observations. It gained 0.0177 mean PQ over the components reference, with paired observation-bootstrap 95% interval **[0.0061, 0.0310]**. Reuse of the assessment set limits the interpretation. The previous validation suite passed 50 tests; subsequent experiments report their own checks. **PQ 0.60 remains a target.**
+
+### Historical training comparison
+
+These four historical rows use threshold 0.65 and minimum area 200, calibrated on 40 separate observations.
 
 | Configuration | Mean PQ | Dataset PQ | TP | FP | FN |
 |---|---:|---:|---:|---:|---:|
