@@ -4,11 +4,11 @@ Used Codex GPT 6 Astra to assist me in this work.
 
 [![Regression tests](https://github.com/ugurk-0/Solar-Filament-Segmentation-Challenge-2026/actions/workflows/tests.yml/badge.svg)](https://github.com/ugurk-0/Solar-Filament-Segmentation-Challenge-2026/actions/workflows/tests.yml)
 
-A PyTorch pipeline that identifies individual solar filaments in 2048 ? 2048 GONG H-alpha images. Built for the [Solar Filament Segmentation Challenge 2026](https://www.kaggle.com/competitions/filament-segmentation-2026), it covers training, instance extraction, Panoptic Quality (PQ) evaluation, and competition CSV export.
+A PyTorch pipeline that identifies individual solar filaments in 2048 × 2048 GONG H-alpha images. Built for the [Solar Filament Segmentation Challenge 2026](https://www.kaggle.com/competitions/filament-segmentation-2026), it covers training, instance extraction, Panoptic Quality (PQ) evaluation, and competition CSV export.
 
 **Best retained research result:** **0.2891 mean PQ / 0.2878 pooled PQ**, using Round-5 U-Net probabilities and calibrated skeleton-endpoint merging. This is an exploratory comparison on 85 reused local observations, not a leaderboard score. The last user-reported Kaggle score is **0.24** for an earlier submission. See the [October 3 handoff](reports/handoff_20261003.md) and [merge experiment](reports/skeleton_merge_20261003.md).
 
-![Local assessment results](docs/assets/results.png)
+![Historical U-Net assessment results before the October experiments](docs/assets/results.png)
 
 ## Engineering highlights
 
@@ -39,7 +39,7 @@ Methods below are grouped by the evidence available. Assessment values use the s
 | CLAHE + short fine-tuning | — | — | Smoke-only training: monitoring 0.1823 vs raw 0.3138; no full run; [report](reports/clahe_20261002.md) |
 | Instance-embedding head | — | — | Smoke execution only; no full assessment; [runner](experiment_instance_embeddings.py) |
 | **Skeleton-endpoint merging** | **0.2891** | **0.2878** | **Promoted research candidate**; [report](reports/skeleton_merge_20261003.md) |
-| YOLO11 instance segmentation | Pending | Pending | New controlled experiment; no measured gain yet |
+| YOLO11n instance segmentation | Pending | Pending | Training; [live report](reports/yolo11n_20261003.md), [method and reproduction](docs/YOLO_EXPERIMENT.md) |
 
 Skeleton merging used endpoint distance at most 50 pixels, direction cosine at least 0.8, and mean gap probability at least 0.3, selected on 40 calibration observations. It gained 0.0177 mean PQ over the components reference, with paired observation-bootstrap 95% interval **[0.0061, 0.0310]**. Reuse of the assessment set limits the interpretation. The previous validation suite passed 50 tests; subsequent experiments report their own checks. **PQ 0.60 remains a target.**
 
@@ -60,14 +60,6 @@ Against the original calibrated checkpoint, Round 5 gained **0.0559 mean PQ**, w
 
 See the [experiment report](reports/pq_experiment_20260926.md) and [versioned metrics snapshot](reports/results_summary.json). Regenerate the figure with `python scripts/build_results_figure.py`.
 
-**Post-submission candidate:** a 40-observation calibration selected stronger confidence/size filtering without closing. On the reused 85-observation assessment, mean PQ reached **0.2714** and dataset PQ **0.2710**, both without TTA. The paired gain's 95% interval includes zero; no improved Kaggle score is claimed. See the [analysis](reports/reference_notebook_review_20260927.md) and [corrected-converter results](reports/refinement_results_20260928_fixed.json).
-
-**Latest completed experiment (September 30):** literature-guided radial illumination correction plus matched fine-tuning raised mean research-assessment PQ to **0.2821**, versus the retained parent's **0.2714**. Pooled PQ slightly decreased (**0.2710 → 0.2707**) and the paired mean-PQ gain's confidence interval includes zero, so the submission baseline is retained. See [research sources, implementation and results](docs/SOLAR_CV_RESEARCH.md). All **35 tests pass**; PQ 0.60 remains a target, not a measured result.
-
-The earlier September 30 [seeded mask-growth experiment](docs/SEEDED_INSTANCES.md) rejected all six growth variants on calibration.
-
-The September 29 [instance-quality CNN experiment](docs/INSTANCE_QUALITY.md) was also rejected: it reduced false detections but mean assessment PQ fell to **0.2618** (dataset PQ **0.2694**).
-
 The [automatic improvement report](reports/autoupgrade_20260928.md) records each subsequent hypothesis, configuration, epoch result, and keep/reject decision. `python autoupgrade.py` runs the current controlled batch after `python refine_postprocessing.py` completes. It preserves prior runs, validates exports, and screens candidates on fixed monitoring observations before further assessment.
 
 ## Pipeline
@@ -79,7 +71,8 @@ flowchart LR
     C --> D[Attention U-Net]
     D --> E[Sliding-window probabilities]
     E --> F[Connected components]
-    F --> G[Instance PQ]
+    F --> G[Optional skeleton merging]
+    G --> I[Instance PQ]
     F --> H[COCO RLE CSV]
 ```
 
@@ -107,6 +100,8 @@ This smoke test measures execution, not model quality. Full-resolution training 
 **Reproducibility boundary:** datasets, trained checkpoints, and large run outputs are not bundled. Historical warm-start experiments require local checkpoints. A fresh clone can run tests and train from scratch, but cannot immediately recreate the reported CSV.
 
 ## Explore the implementation
+
+The [YOLO experiment guide](docs/YOLO_EXPERIMENT.md) explains pretrained instance segmentation, solar-support loss masking, GPU memory management, and PQ-based model selection. It uses a separate optional environment and leaves the existing submission pipeline available. The skeleton-merge research candidate has been assessed locally; its export integration is still pending.
 
 The [instance-quality experiment](docs/INSTANCE_QUALITY.md) adds a learned
 second-stage filter to the existing U-Net. It tests whether instance-level
