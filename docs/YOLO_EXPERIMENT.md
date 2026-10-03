@@ -14,8 +14,9 @@ That author reports 0.3593 five-fold mean PQ and 0.35 public leaderboard PQ for
 their respective systems. These are external results with different models,
 splits, and fusion settings; they are not measurements of this repository.
 Our smaller direct-mask experiment first tests whether useful instance
-proposals can be learned within the local compute budget. Crop refinement is
-a follow-up hypothesis, not an implemented result here.
+proposals can be learned within the local compute budget. A learned crop
+refiner remains a follow-up hypothesis. The cheap probability-map refinement
+below reuses our existing model and is not a reproduction of their refiner.
 
 ## Model and efficiency choices
 
@@ -98,6 +99,31 @@ a positive lower confidence bound for the mean-PQ difference.
 The assessment set has been reused across experiments. Its score is exploratory
 local evidence, not an unbiased final test or a Kaggle leaderboard result.
 This runner does not submit anything to Kaggle or replace a submission CSV.
+
+## Optional refinement without more training
+
+`experiment_yolo_refinement.py` tests whether the retained U-Net can repair
+YOLO mask boundaries. For each YOLO instance, dilate its mask locally, intersect
+that neighborhood with the U-Net foreground probability threshold, apply the
+solar support, then assign overlapping pixels by YOLO confidence. It preserves
+the YOLO object's identity and cannot invent a new detection far from a proposal.
+
+The grid was specified during YOLO training, before its assessment: dilation
+radii 8/24 native pixels, U-Net thresholds 0.5/0.8, YOLO confidences 0.1/0.3,
+minimum area 128. These eight settings reuse cached full-resolution predictions.
+Only a setting with calibration mean PQ more than 0.005 above calibrated direct
+YOLO **and** higher pooled PQ advances to assessment. The final promotion gate
+still compares against the stronger retained skeleton-merge candidate. This
+limits extra compute and avoids reporting a calibration-only gain as an
+assessment improvement.
+
+```powershell
+python experiment_yolo_refinement.py --smoke
+python experiment_yolo_refinement.py
+```
+
+Run these after the corresponding direct YOLO experiment finishes. Outputs go
+under `runs/yolo_refinement_20261003/` and the tracked report records the decision.
 
 ## Reproduce
 
