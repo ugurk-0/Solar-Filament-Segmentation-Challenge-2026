@@ -1,0 +1,6 @@
+# Install in a separate environment, retaining the core dependency constraints.
+-r requirements.txt
+ultralytics==8.3.253
+opencv-python==4.11.0.86
+polars==1.44.2
+ultralytics-thop==2.2.2
