@@ -42,7 +42,7 @@ Methods below are grouped by the evidence available. Assessment values use the s
 | YOLO11n instance segmentation | Pending | Pending | Training; [live report](reports/yolo11n_20261003.md), [method and reproduction](docs/YOLO_EXPERIMENT.md) |
 | YOLO instances + retained U-Net boundaries | Pending | Pending | Calibration-gated refinement, no additional training; [method](docs/YOLO_EXPERIMENT.md#optional-refinement-without-more-training) |
 
-Skeleton merging used endpoint distance at most 50 pixels, direction cosine at least 0.8, and mean gap probability at least 0.3, selected on 40 calibration observations. It gained 0.0177 mean PQ over the components reference, with paired observation-bootstrap 95% interval **[0.0061, 0.0310]**. Reuse of the assessment set limits the interpretation. The current regression suite passes 61 tests, including the optional YOLO checks in its separate environment. **PQ 0.60 remains a target.**
+Skeleton merging used endpoint distance at most 50 pixels, direction cosine at least 0.8, and mean gap probability at least 0.3, selected on 40 calibration observations. It gained 0.0177 mean PQ over the components reference, with paired observation-bootstrap 95% interval **[0.0061, 0.0310]**. Reuse of the assessment set limits the interpretation. The current regression suite passes 64 tests, including the optional YOLO checks in its separate environment. **PQ 0.60 remains a target.**
 
 ### Historical training comparison
 
