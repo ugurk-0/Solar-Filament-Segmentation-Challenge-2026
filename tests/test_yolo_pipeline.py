@@ -11,7 +11,6 @@ def test_polygon_roundtrip():
 
 
 def test_polygon_conversion_preserves_internal_holes():
-    pytest.importorskip('ultralytics')
     import cv2
     mask = np.zeros((64, 64), bool)
     mask[8:50, 10:55] = True
@@ -20,6 +19,15 @@ def test_polygon_conversion_preserves_internal_holes():
     restored = np.zeros(mask.shape, np.uint8)
     cv2.fillPoly(restored, [polygon.astype(np.int32)], 1)
     assert iou == 1 and np.array_equal(restored.astype(bool), mask)
+
+
+def test_polygon_preserves_multiple_holes_in_a_concave_instance():
+    mask = np.zeros((64, 64), bool)
+    mask[5:55, 5:55] = True
+    mask[15:45, 25:55] = False
+    mask[8, 45] = mask[50, 45] = mask[30, 10] = False
+    _, iou = mask_polygon(mask)
+    assert iou == 1
 
 
 def test_instance_ownership_support_and_small_masks():

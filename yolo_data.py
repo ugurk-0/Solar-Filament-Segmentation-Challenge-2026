@@ -3,20 +3,25 @@ import json
 from pathlib import Path
 import cv2
 import numpy as np
+from scipy.spatial import cKDTree
 import solution as sol
 
 
 def mask_polygon(mask):
     # Include hole boundaries: dropping them can substantially inflate thin masks.
-    contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours = [c.reshape(-1, 2) for c in contours if len(c) >= 3]
     if not contours:
         raise ValueError('Nonempty instance has no valid polygon')
-    if len(contours) == 1:
-        polygon = contours[0]
-    else:
-        from ultralytics.data.converter import merge_multi_segment
-        polygon = np.concatenate(merge_multi_segment([c.reshape(-1) for c in contours]), axis=0)
+    polygon = contours[0]
+    for contour in contours[1:]:
+        distances, indices = cKDTree(polygon).query(contour)
+        child = int(np.argmin(distances))
+        parent = int(indices[child])
+        # Traverse the child loop and retrace the same bridge. Even-odd filling
+        # retains holes; chaining separate holes directly can cut the outer mask.
+        loop = np.concatenate([contour[child:], contour[:child + 1]])
+        polygon = np.concatenate([polygon[:parent + 1], loop, polygon[parent:]])
     reconstructed = np.zeros_like(mask, np.uint8)
     cv2.fillPoly(reconstructed, [polygon.astype(np.int32)], 1)
     iou = (reconstructed.astype(bool) & mask).sum() / (reconstructed.astype(bool) | mask).sum()
