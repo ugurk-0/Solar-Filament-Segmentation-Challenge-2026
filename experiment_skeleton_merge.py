@@ -64,8 +64,8 @@ def main():
     selected = max(grid, key=lambda row: row["summary"]["mean_pq"])
     state.update(status="assessing", selection=selected)
     sol._write_json_atomically(state_path, state)
-    before = score(split["audit"], cache, cfg, ds.limb, None)
-    after = score(split["audit"], cache, cfg, ds.limb, selected["parameters"])
+    before = score(split["audit"], cache, cfg, ds.limb, ds, None)
+    after = score(split["audit"], cache, cfg, ds.limb, ds, selected["parameters"])
     assessment = {"baseline": ex.summarize(before), "merged": ex.summarize(after),
                   "paired": ex.paired_bootstrap(before, after),
                   "parameters": selected["parameters"]}
