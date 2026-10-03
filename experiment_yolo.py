@@ -16,6 +16,7 @@ import pq_experiment as ex
 from instance_quality import matrix_metrics, summarize
 from yolo_data import prepare_dataset, disjoint_masks
 from yolo_training import SupportSegmentationTrainer
+from yolo_prediction import ChunkedSegmentationPredictor
 
 ROOT = Path('runs/yolo11n_20261003')
 
@@ -29,7 +30,7 @@ def prediction(model, dataset, image_id, imgsz):
     image = np.rint(image * dataset.limb * 255).astype(np.uint8)
     result = model.predict(cv2.cvtColor(image, cv2.COLOR_GRAY2BGR), imgsz=imgsz, conf=.01,
                            iou=.7, max_det=100, retina_masks=True, device=0, half=True,
-                           verbose=False, save=False)[0]
+                           verbose=False, save=False, predictor=ChunkedSegmentationPredictor)[0]
     if result.masks is None:
         return np.empty((0, *image.shape), bool), np.empty(0, np.float32)
     masks = result.masks.data.cpu().numpy().astype(bool)
@@ -80,7 +81,7 @@ def main(smoke=False):
                     selection='Epoch: mean PQ on 16 monitor observations at confidence .1, area 128. Calibration: 40. Assessment: 85 reused.',
                     stopping='At least 8 epochs, stop after 6 epochs without monitor PQ improvement >0.001; maximum 20.',
                     source_sha256={name: digest(name) for name in
-                                   ('solution.py', 'yolo_data.py', 'yolo_training.py', 'experiment_yolo.py', cfg.train_json)})
+                                   ('solution.py', 'yolo_data.py', 'yolo_training.py', 'yolo_prediction.py', 'experiment_yolo.py', cfg.train_json)})
     protocol = json.loads(json.dumps(protocol))
     path = root / 'protocol.json'
     if path.exists() and json.loads(path.read_text()) != protocol:
