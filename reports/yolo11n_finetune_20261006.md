@@ -61,6 +61,20 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
         "fn": 52
       },
       "elapsed_seconds": 467.954000000027
+    },
+    {
+      "epoch": 5,
+      "monitor": {
+        "n": 16,
+        "mean_pq": 0.353097673157451,
+        "dataset_pq": 0.32348743768919297,
+        "sq": 0.6402355537598611,
+        "rq": 0.5052631578947369,
+        "tp": 72,
+        "fp": 94,
+        "fn": 47
+      },
+      "elapsed_seconds": 580.375
     }
   ],
   "initial_monitor": {
@@ -79,6 +93,6 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
     "parameters": 2842803,
     "yaml_file": "yolo11n-seg.yaml"
   },
-  "best_epoch": 4
+  "best_epoch": 5
 }
 ```
