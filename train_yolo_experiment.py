@@ -31,11 +31,12 @@ def main(args):
         train = [i for i in train if sol.base_name(coco.imgs[i]['file_name']) in keys]
         split = {key: ids[:2] for key, ids in split.items()}
     size, epochs = (640, 1) if args.smoke else (args.imgsz, args.epochs)
-    initial = Path(args.weights) if args.weights else root / 'pretrained' / f'yolo11{args.variant}-seg.pt'
+    initial = Path(args.weights) if args.weights else Path(args.output) / 'pretrained' / f'yolo11{args.variant}-seg.pt'
     initial.parent.mkdir(parents=True, exist_ok=True)
     model = YOLO(str(initial))
     identity = model_identity(model, args.variant)
     baseline = Path(args.baseline)
+    baseline_summary = json.loads((baseline / 'assessment.json').read_text())['summary']
     protocol = dict(variant=args.variant, actual_model=identity, init_sha256=digest(initial),
                     baseline=str(baseline), baseline_sha256=digest(baseline / 'assessment.json'),
                     split=split, train_ids=train, imgsz=size, epochs=epochs, batch=args.batch,
@@ -67,7 +68,8 @@ def main(args):
                 'Same grouped split, support-aware loss, no geometric augmentation or TTA. '
                 'The parent checkpoint is retained unless monitoring PQ improves. '
                 'Calibrate on 40 observations, then compare on the reused 85-observation assessment '
-                'against the retained nano candidate (mean 0.3199, pooled 0.3319). '
+                f'against `{baseline.name}` (mean {baseline_summary["mean_pq"]:.4f}, '
+                f'pooled {baseline_summary["dataset_pq"]:.4f}). '
                 'Promotion requires higher pooled PQ and paired mean-PQ confidence interval above zero.\n\n'
                 '```json\n' + json.dumps(state, indent=2) + '\n```\n', encoding='utf-8')
 
@@ -168,6 +170,10 @@ def main(args):
         state.update(status='failed', error=f'{type(error).__name__}: {error}')
         save()
         raise
+    finally:
+        if args.update_readme and state.get('status') in ('complete', 'failed'):
+            from scripts.update_yolo_readme import update_readme
+            update_readme()
 
 
 def parser():
@@ -182,6 +188,7 @@ def parser():
     result.add_argument('--batch', type=int, default=2)
     result.add_argument('--lr0', type=float, default=.00015)
     result.add_argument('--smoke', action='store_true')
+    result.add_argument('--update-readme', action='store_true', help='Refresh tracked result rows when the run finishes')
     return result
 
 

@@ -152,6 +152,21 @@ The full-resolution parent control reproduced monitoring PQ **0.3417497475**
 exactly after this optimization. The [live report](../reports/yolo11n_finetune_20261006.md)
 records the new run; monitoring values are distinct from assessment scores.
 
+For a verified model-size experiment, omit `--weights` so the runner downloads
+the requested official pretrained variant and checks its architecture. The
+prepared observation dataset is shared across runs; checkpoints and reports
+remain isolated. The next small-model trial is configured as:
+
+```powershell
+python train_yolo_experiment.py --variant s --output runs/yolo11s_20261006 --epochs 24 --lr0 0.001 --batch 1 --smoke
+python train_yolo_experiment.py --variant s --output runs/yolo11s_20261006 --epochs 24 --lr0 0.001 --batch 1 --update-readme
+```
+
+`--update-readme` refreshes the result row from the final recorded state when
+training/evaluation ends. It only promotes a headline result after the paired
+comparison gate passes. If a stronger candidate has been retained before a
+new run, pass its run directory with `--baseline`.
+
 ## Reproduce
 
 Use a separate Python 3.12 environment so the optional YOLO dependencies do not
