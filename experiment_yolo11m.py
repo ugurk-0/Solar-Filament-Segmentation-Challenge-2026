@@ -17,6 +17,7 @@ from instance_quality import matrix_metrics, summarize
 from yolo_data import prepare_dataset, disjoint_masks
 from yolo_training import SupportSegmentationTrainer
 from yolo_prediction import ChunkedSegmentationPredictor
+from yolo_model_identity import model_identity
 
 ROOT = Path('runs/yolo11m_20261003')
 
@@ -118,9 +119,10 @@ def main(smoke=False):
         if not state.get('training_complete'):
             state['status'] = 'training'
             save()
-            weights = ROOT / 'pretrained/yolo11n-seg.pt'
+            weights = ROOT / 'pretrained/yolo11m-seg.pt'
             weights.parent.mkdir(parents=True, exist_ok=True)
             model = YOLO(str(weights))
+            state['actual_model'] = model_identity(model, 'm')
             state['pretrained_sha256'] = digest(weights)
             best, last_improved, started = [-1.0], [0], time.monotonic()
 

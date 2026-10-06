@@ -80,8 +80,14 @@ def main(args):
         if not state.get('training_complete'):
             if (root / 'training/weights/last.pt').exists():
                 raise RuntimeError('Interrupted checkpoint preserved; choose a new run or explicitly resume it')
-            control = summarize(evaluate(model, dataset, split['monitor'], coco, size,
+            # Prediction may fuse Conv/BN in-place. Never fuse the weights that
+            # will initialize training; evaluate a separate model instance.
+            control_model = YOLO(str(initial))
+            control = summarize(evaluate(control_model, dataset, split['monitor'], coco, size,
                                 [dict(confidence=.1, min_area=128)], confidence_floor=.1)[0])
+            del control_model
+            gc.collect()
+            torch.cuda.empty_cache()
             state.update(status='training', initial_monitor=control, actual_model=identity)
             best = [control['mean_pq'] if args.weights else -1.]
             last_improved, started = [0], time.monotonic()
