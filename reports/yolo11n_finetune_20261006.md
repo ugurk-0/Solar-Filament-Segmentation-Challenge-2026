@@ -75,6 +75,20 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
         "fn": 47
       },
       "elapsed_seconds": 580.375
+    },
+    {
+      "epoch": 6,
+      "monitor": {
+        "n": 16,
+        "mean_pq": 0.3384172780331041,
+        "dataset_pq": 0.31548752651912154,
+        "sq": 0.6469780435138507,
+        "rq": 0.4876325088339223,
+        "tp": 69,
+        "fp": 95,
+        "fn": 50
+      },
+      "elapsed_seconds": 693.0470000000205
     }
   ],
   "initial_monitor": {
