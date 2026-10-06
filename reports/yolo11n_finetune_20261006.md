@@ -4,7 +4,7 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
 
 ```json
 {
-  "status": "assessing",
+  "status": "complete",
   "history": [
     {
       "epoch": 1,
@@ -181,6 +181,33 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
       "fp": 123,
       "fn": 158
     }
-  }
+  },
+  "assessment": {
+    "n": 85,
+    "mean_pq": 0.31731186797251276,
+    "dataset_pq": 0.3344794493860138,
+    "sq": 0.6397325391169391,
+    "rq": 0.5228426395939086,
+    "tp": 309,
+    "fp": 225,
+    "fn": 339
+  },
+  "paired": {
+    "mean_pq_delta": -0.0025417456072711103,
+    "observation_bootstrap_95ci": [
+      -0.017439111731327686,
+      0.011641292235315848
+    ],
+    "date_block_bootstrap_95ci": [
+      -0.01719755632540271,
+      0.011479069258962395
+    ],
+    "n_observations": 85,
+    "n_dates": 84,
+    "interpretation": "Conditional on this split, training seed and selected model; not leaderboard uncertainty."
+  },
+  "promoted": false,
+  "decision": "not_promoted",
+  "leaderboard_score": null
 }
 ```

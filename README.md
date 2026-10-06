@@ -41,7 +41,7 @@ Methods below are grouped by the evidence available. Assessment values use the s
 | Skeleton-endpoint merging | 0.2891 | 0.2878 | Earlier promoted candidate; superseded by YOLO nano; [report](reports/skeleton_merge_20261003.md) |
 | **YOLO11n, batch 2, 20 epochs** | **0.3199** | **0.3319** | **Retained best**; epoch 17 selected; [report](reports/yolo11n_20261003.md) |
 | Nano batch 1, 50-epoch budget (mislabeled ?11m?) | 0.3164 | 0.3320 | Stopped at 17 epochs; selected epoch 11; no medium model was trained; [corrected report](reports/yolo11m_20261003.md) |
-| YOLO11n lower-rate fine-tuning | Pending | Pending | Warm-start from retained nano; [live report](reports/yolo11n_finetune_20261006.md) |
+| YOLO11n lower-rate fine-tuning | 0.3173 | 0.3345 | Did not pass paired assessment gate; [report](reports/yolo11n_finetune_20261006.md) |
 | YOLO11s, batch 1, 24-epoch budget | Pending | Pending | Verified small-model weights; execution check before training; [runner](train_yolo_experiment.py) |
 | YOLO instances + retained U-Net boundaries | ? | ? | Rejected on calibration; no new training or assessment; [report](reports/yolo_refinement_20261006.md) |
 
