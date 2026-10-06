@@ -113,7 +113,7 @@ radii 8/24 native pixels, U-Net thresholds 0.5/0.8, YOLO confidences 0.1/0.3,
 minimum area 128. These eight settings reuse cached full-resolution predictions.
 Only a setting with calibration mean PQ more than 0.005 above calibrated direct
 YOLO **and** higher pooled PQ advances to assessment. The final promotion gate
-still compares against the stronger retained skeleton-merge candidate. This
+compares against the retained direct YOLO candidate. This
 limits extra compute and avoids reporting a calibration-only gain as an
 assessment improvement.
 
@@ -123,7 +123,34 @@ python experiment_yolo_refinement.py
 ```
 
 Run these after the corresponding direct YOLO experiment finishes. Outputs go
-under `runs/yolo_refinement_20261003/` and the tracked report records the decision.
+under `runs/yolo_refinement_20261006/` and the tracked report records the decision.
+The completed trial was rejected: best calibration mean PQ 0.2865 versus
+0.2854, but pooled PQ fell from 0.2889 to 0.2804. No assessment was performed.
+
+## Continuing training from the retained checkpoint
+
+The completed nano model reached **0.3199 mean / 0.3319 pooled assessment PQ**.
+The October 6 continuation uses `train_yolo_experiment.py`, a configurable
+runner that verifies the actual architecture before training. The earlier
+file named `experiment_yolo11m.py` accidentally loaded nano weights; its report
+is corrected and the weight-path bug is fixed. It provides no medium-model
+result. See the [audit](../reports/yolo_audit_20261006.md).
+
+```powershell
+python train_yolo_experiment.py --variant n --weights runs/yolo11n_20261003/best_pq.pt --output runs/yolo11n_finetune_20261006 --epochs 12 --lr0 0.00015 --batch 2 --smoke
+python train_yolo_experiment.py --variant n --weights runs/yolo11n_20261003/best_pq.pt --output runs/yolo11n_finetune_20261006 --epochs 12 --lr0 0.00015 --batch 2
+```
+
+This is fine-tuning with a fresh optimizer and cosine schedule, not resuming
+the exact old optimizer state. It retains the parent as epoch-zero control,
+reuses prepared data, and stops after at least six epochs if five epochs fail
+to improve monitoring PQ by more than 0.001. Prediction uses a separate model
+instance so inference-time Conv/BN fusion cannot alter training initialization.
+The minimum inference confidence equals the lowest threshold needed by the
+current evaluation, avoiding reconstruction of masks that would be discarded.
+The full-resolution parent control reproduced monitoring PQ **0.3417497475**
+exactly after this optimization. The [live report](../reports/yolo11n_finetune_20261006.md)
+records the new run; monitoring values are distinct from assessment scores.
 
 ## Reproduce
 

@@ -5,7 +5,22 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
 ```json
 {
   "status": "training",
-  "history": [],
+  "history": [
+    {
+      "epoch": 1,
+      "monitor": {
+        "n": 16,
+        "mean_pq": 0.2951834359840594,
+        "dataset_pq": 0.27633337366176663,
+        "sq": 0.6495896470407201,
+        "rq": 0.4253968253968254,
+        "tp": 67,
+        "fp": 129,
+        "fn": 52
+      },
+      "elapsed_seconds": 119.85999999998603
+    }
+  ],
   "initial_monitor": {
     "n": 16,
     "mean_pq": 0.3417497475249917,

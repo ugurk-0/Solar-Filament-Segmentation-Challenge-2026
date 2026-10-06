@@ -75,5 +75,9 @@ python train_yolo_experiment.py --variant n --weights runs/yolo11n_20261003/best
 
 Use the separate interpreter
 `C:/Users/ugurk/AppData/Local/FilamentYolo/venv/Scripts/python.exe` on this machine.
-The focused checks passed 11 tests. The new run's state/report records actual
-progress and results; its outcome must not be inferred from the hypothesis.
+The focused checks passed 11 tests; the full suite passed **65 tests**. The
+fine-tuning smoke test completed training, calibration, and local evaluation.
+The full-resolution parent control reproduced monitoring PQ **0.3417497475**
+exactly with the optimized inference threshold. The new run's state/report
+records actual progress and results; its outcome must not be inferred from
+the hypothesis.

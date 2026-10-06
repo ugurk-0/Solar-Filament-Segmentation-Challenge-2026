@@ -41,10 +41,10 @@ Methods below are grouped by the evidence available. Assessment values use the s
 | Skeleton-endpoint merging | 0.2891 | 0.2878 | Earlier promoted candidate; superseded by YOLO nano; [report](reports/skeleton_merge_20261003.md) |
 | **YOLO11n, batch 2, 20 epochs** | **0.3199** | **0.3319** | **Retained best**; epoch 17 selected; [report](reports/yolo11n_20261003.md) |
 | Nano batch 1, 50-epoch budget (mislabeled ?11m?) | 0.3164 | 0.3320 | Stopped at 17 epochs; selected epoch 11; no medium model was trained; [corrected report](reports/yolo11m_20261003.md) |
-| YOLO11n lower-rate fine-tuning | Pending | Pending | Warm-start from retained nano; [runner](train_yolo_experiment.py) |
+| YOLO11n lower-rate fine-tuning | Pending | Pending | Warm-start from retained nano; [live report](reports/yolo11n_finetune_20261006.md) |
 | YOLO instances + retained U-Net boundaries | ? | ? | Rejected on calibration; no new training or assessment; [report](reports/yolo_refinement_20261006.md) |
 
-Skeleton merging used endpoint distance at most 50 pixels, direction cosine at least 0.8, and mean gap probability at least 0.3, selected on 40 calibration observations. It gained 0.0177 mean PQ over the components reference, with paired observation-bootstrap 95% interval **[0.0061, 0.0310]**. Reuse of the assessment set limits the interpretation. The current regression suite passes 64 tests, including the optional YOLO checks in its separate environment. **PQ 0.60 remains a target.**
+Skeleton merging used endpoint distance at most 50 pixels, direction cosine at least 0.8, and mean gap probability at least 0.3, selected on 40 calibration observations. It gained 0.0177 mean PQ over the components reference, with paired observation-bootstrap 95% interval **[0.0061, 0.0310]**. Reuse of the assessment set limits the interpretation. The current regression suite passes 65 tests, including the optional YOLO checks in its separate environment. **PQ 0.60 remains a target.**
 
 ### Historical training comparison
 
