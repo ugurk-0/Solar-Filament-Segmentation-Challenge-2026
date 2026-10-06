@@ -1,10 +1,10 @@
 # YOLO11n follow-up experiment
 
-Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'yaml_file': 'yolo11n-seg.yaml'}. Initial checkpoint: `runs\yolo11n_20261003\best_pq.pt`. Input 1536, batch 2, nominal batch 8, learning rate 0.00015, budget 12 epochs. Reset optimizer for fine-tuning. Same grouped split, support-aware loss, no geometric augmentation or TTA. The parent checkpoint is retained unless monitoring PQ improves. Calibrate on 40 observations, then compare on the reused 85-observation assessment against the retained nano candidate (mean 0.3199, pooled 0.3319). Promotion requires higher pooled PQ and paired mean-PQ confidence interval above zero.
+Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'yaml_file': 'yolo11n-seg.yaml'}. Initial checkpoint: `runs\yolo11n_20261003\best_pq.pt`. Input 1536, batch 2, nominal batch 8, learning rate 0.00015, budget 12 epochs. Reset optimizer for fine-tuning. Same grouped split, support-aware loss, no geometric augmentation or TTA. The parent checkpoint is retained unless monitoring PQ improves. Calibrate on 40 observations, then compare on the reused 85-observation assessment against `yolo11n_20261003` (mean 0.3199, pooled 0.3319). Promotion requires higher pooled PQ and paired mean-PQ confidence interval above zero.
 
 ```json
 {
-  "status": "failed",
+  "status": "calibrating",
   "history": [
     {
       "epoch": 1,
@@ -165,6 +165,6 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
   },
   "best_epoch": 5,
   "training_complete": true,
-  "error": "MemoryError: Unable to allocate 4.00 MiB for an array with shape (2048, 2048) and data type bool"
+  "recovered_error": "MemoryError: Unable to allocate 4.00 MiB for an array with shape (2048, 2048) and data type bool"
 }
 ```

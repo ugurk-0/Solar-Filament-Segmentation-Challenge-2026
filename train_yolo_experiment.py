@@ -15,6 +15,7 @@ from instance_quality import summarize
 from yolo_data import prepare_dataset
 from yolo_model_identity import model_identity
 from yolo_training import SupportSegmentationTrainer
+from yolo_recovery import record_protocol
 
 
 def main(args):
@@ -47,12 +48,10 @@ def main(args):
                     source_sha256={name: digest(name) for name in
                         ('train_yolo_experiment.py', 'experiment_yolo.py', 'yolo_model_identity.py',
                          'yolo_data.py', 'yolo_training.py', 'yolo_prediction.py', 'solution.py',
-                         'scripts/update_yolo_readme.py', cfg.train_json)})
+                         'scripts/update_yolo_readme.py', 'yolo_recovery.py', cfg.train_json)})
     protocol_path, state_path = root / 'protocol.json', root / 'state.json'
-    if protocol_path.exists() and json.loads(protocol_path.read_text()) != protocol:
-        raise ValueError('Inputs changed; choose a new --output directory')
-    sol._write_json_atomically(protocol_path, protocol)
     state = json.loads(state_path.read_text()) if state_path.exists() else dict(status='preparing', history=[])
+    record_protocol(protocol_path, protocol, state, evaluation_only=args.evaluate_only)
     if state['status'] == 'complete':
         print('Completed run preserved.')
         return
@@ -75,6 +74,8 @@ def main(args):
                 '```json\n' + json.dumps(state, indent=2) + '\n```\n', encoding='utf-8')
 
     try:
+        if args.evaluate_only and state.get('error'):
+            state['recovered_error'] = state.pop('error')
         save()
         data_dir = root / 'dataset' if args.smoke or not args.dataset_cache else Path(args.dataset_cache)
         data = prepare_dataset(coco, train, split['monitor'], cfg, data_dir)
@@ -190,6 +191,7 @@ def parser():
     result.add_argument('--lr0', type=float, default=.00015)
     result.add_argument('--smoke', action='store_true')
     result.add_argument('--update-readme', action='store_true', help='Refresh tracked result rows when the run finishes')
+    result.add_argument('--evaluate-only', action='store_true', help='Recover evaluation after completed training, preserving its original protocol')
     return result
 
 
