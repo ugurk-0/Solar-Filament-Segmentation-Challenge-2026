@@ -6,7 +6,7 @@ Used Codex GPT 6 Astra to assist me in this work.
 
 A PyTorch pipeline that identifies individual solar filaments in 2048 × 2048 GONG H-alpha images. Built for the [Solar Filament Segmentation Challenge 2026](https://www.kaggle.com/competitions/filament-segmentation-2026), it covers training, instance extraction, Panoptic Quality (PQ) evaluation, and competition CSV export.
 
-**Best retained research result:** **0.2891 mean PQ / 0.2878 pooled PQ**, using Round-5 U-Net probabilities and calibrated skeleton-endpoint merging. This is an exploratory comparison on 85 reused local observations, not a leaderboard score. The last user-reported Kaggle score is **0.24** for an earlier submission. See the [October 3 handoff](reports/handoff_20261003.md) and [merge experiment](reports/skeleton_merge_20261003.md).
+**Best retained research result:** **0.3199 mean PQ / 0.3319 pooled PQ**, using YOLO11n-seg (20 training epochs, epoch 17 selected by monitoring PQ). This is an exploratory comparison on 85 reused local observations, not a leaderboard score. The last user-reported Kaggle score remains **0.24** for an earlier submission. See the [YOLO result](reports/yolo11n_20261003.md) and [October 6 audit](reports/yolo_audit_20261006.md).
 
 ![Historical U-Net assessment results before the October experiments](docs/assets/results.png)
 
@@ -38,9 +38,11 @@ Methods below are grouped by the evidence available. Assessment values use the s
 | Observation-balanced sampling + spine auxiliary loss | 0.2679 | 0.2680 | Selected spine arm rejected on assessment; control monitor 0.3217, spine monitor 0.3229; [report](reports/spine_learning_20261001.md) |
 | CLAHE + short fine-tuning | — | — | Smoke-only training: monitoring 0.1823 vs raw 0.3138; no full run; [report](reports/clahe_20261002.md) |
 | Instance-embedding head | — | — | Smoke execution only; no full assessment; [runner](experiment_instance_embeddings.py) |
-| **Skeleton-endpoint merging** | **0.2891** | **0.2878** | **Promoted research candidate**; [report](reports/skeleton_merge_20261003.md) |
-| YOLO11n instance segmentation | Pending | Pending | Training; [live report](reports/yolo11n_20261003.md), [method and reproduction](docs/YOLO_EXPERIMENT.md) |
-| YOLO instances + retained U-Net boundaries | Pending | Pending | Calibration-gated refinement, no additional training; [method](docs/YOLO_EXPERIMENT.md#optional-refinement-without-more-training) |
+| Skeleton-endpoint merging | 0.2891 | 0.2878 | Earlier promoted candidate; superseded by YOLO nano; [report](reports/skeleton_merge_20261003.md) |
+| **YOLO11n, batch 2, 20 epochs** | **0.3199** | **0.3319** | **Retained best**; epoch 17 selected; [report](reports/yolo11n_20261003.md) |
+| Nano batch 1, 50-epoch budget (mislabeled ?11m?) | 0.3164 | 0.3320 | Stopped at 17 epochs; selected epoch 11; no medium model was trained; [corrected report](reports/yolo11m_20261003.md) |
+| YOLO11n lower-rate fine-tuning | Pending | Pending | Warm-start from retained nano; [runner](train_yolo_experiment.py) |
+| YOLO instances + retained U-Net boundaries | ? | ? | Rejected on calibration; no new training or assessment; [report](reports/yolo_refinement_20261006.md) |
 
 Skeleton merging used endpoint distance at most 50 pixels, direction cosine at least 0.8, and mean gap probability at least 0.3, selected on 40 calibration observations. It gained 0.0177 mean PQ over the components reference, with paired observation-bootstrap 95% interval **[0.0061, 0.0310]**. Reuse of the assessment set limits the interpretation. The current regression suite passes 64 tests, including the optional YOLO checks in its separate environment. **PQ 0.60 remains a target.**
 
