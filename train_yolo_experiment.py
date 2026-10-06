@@ -46,7 +46,8 @@ def main(args):
                     stopping='At least 6 epochs; stop after 5 without >.001 monitoring gain.',
                     source_sha256={name: digest(name) for name in
                         ('train_yolo_experiment.py', 'experiment_yolo.py', 'yolo_model_identity.py',
-                         'yolo_data.py', 'yolo_training.py', 'yolo_prediction.py', 'solution.py', cfg.train_json)})
+                         'yolo_data.py', 'yolo_training.py', 'yolo_prediction.py', 'solution.py',
+                         'scripts/update_yolo_readme.py', cfg.train_json)})
     protocol_path, state_path = root / 'protocol.json', root / 'state.json'
     if protocol_path.exists() and json.loads(protocol_path.read_text()) != protocol:
         raise ValueError('Inputs changed; choose a new --output directory')
@@ -103,7 +104,7 @@ def main(args):
                 if state['history'] and state['history'][-1]['epoch'] >= epoch:
                     return
                 candidate = YOLO(str(trainer.last))
-                model_identity(candidate, args.variant)
+                state['trained_model_identity'] = model_identity(candidate, args.variant)
                 measured = summarize(evaluate(candidate, dataset, split['monitor'], coco, size,
                                       [dict(confidence=.1, min_area=128)], confidence_floor=.1)[0])
                 if measured['mean_pq'] > best[0]:

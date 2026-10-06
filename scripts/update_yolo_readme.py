@@ -50,6 +50,10 @@ def update_readme(repo=Path('.')):
         name, state = max(candidates, key=lambda entry: entry[1]['assessment']['mean_pq'])
         measured = state['assessment']
         label = 'YOLO11n-seg' if name == 'yolo11n_20261003' else RUNS[name]
+        if name != 'yolo11n_20261003':
+            content = content.replace(
+                '| **YOLO11n, batch 2, 20 epochs** | **0.3199** | **0.3319** | **Retained best**;',
+                '| YOLO11n, batch 2, 20 epochs | 0.3199 | 0.3319 | Earlier promoted candidate;')
         start = content.index('**Best retained research result:**')
         end = content.index('\n\n', start)
         content = (content[:start] + f"**Best retained research result:** **{measured['mean_pq']:.4f} mean PQ / "
