@@ -4,7 +4,7 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
 
 ```json
 {
-  "status": "calibrating",
+  "status": "failed",
   "history": [
     {
       "epoch": 1,
@@ -164,6 +164,7 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
     "yaml_file": "yolo11n-seg.yaml"
   },
   "best_epoch": 5,
-  "training_complete": true
+  "training_complete": true,
+  "error": "MemoryError: Unable to allocate 4.00 MiB for an array with shape (2048, 2048) and data type bool"
 }
 ```
