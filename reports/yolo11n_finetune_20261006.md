@@ -4,7 +4,7 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
 
 ```json
 {
-  "status": "training",
+  "status": "calibrating",
   "history": [
     {
       "epoch": 1,
@@ -131,6 +131,20 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
         "fn": 48
       },
       "elapsed_seconds": 1031.734999999986
+    },
+    {
+      "epoch": 10,
+      "monitor": {
+        "n": 16,
+        "mean_pq": 0.31838040528806144,
+        "dataset_pq": 0.2946212585880912,
+        "sq": 0.6472739772011094,
+        "rq": 0.45517241379310347,
+        "tp": 66,
+        "fp": 105,
+        "fn": 53
+      },
+      "elapsed_seconds": 1141.6720000000205
     }
   ],
   "initial_monitor": {
@@ -149,6 +163,7 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
     "parameters": 2842803,
     "yaml_file": "yolo11n-seg.yaml"
   },
-  "best_epoch": 5
+  "best_epoch": 5,
+  "training_complete": true
 }
 ```
