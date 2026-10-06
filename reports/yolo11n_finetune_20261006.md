@@ -4,7 +4,7 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
 
 ```json
 {
-  "status": "calibrating",
+  "status": "assessing",
   "history": [
     {
       "epoch": 1,
@@ -165,6 +165,22 @@ Actual loaded model: {'task': 'segment', 'scale': 'n', 'parameters': 2842803, 'y
   },
   "best_epoch": 5,
   "training_complete": true,
-  "recovered_error": "MemoryError: Unable to allocate 4.00 MiB for an array with shape (2048, 2048) and data type bool"
+  "recovered_error": "MemoryError: Unable to allocate 4.00 MiB for an array with shape (2048, 2048) and data type bool",
+  "selected": {
+    "parameters": {
+      "confidence": 0.5,
+      "min_area": 128
+    },
+    "summary": {
+      "n": 40,
+      "mean_pq": 0.2708759698890248,
+      "dataset_pq": 0.2766971801602711,
+      "sq": 0.6269309982910648,
+      "rq": 0.441351888667992,
+      "tp": 111,
+      "fp": 123,
+      "fn": 158
+    }
+  }
 }
 ```
