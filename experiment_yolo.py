@@ -25,10 +25,10 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def prediction(model, dataset, image_id, imgsz):
+def prediction(model, dataset, image_id, imgsz, confidence_floor=.01):
     image = sol.load_image(Path(dataset.cfg.data_dir) / 'train_images' / dataset.coco.imgs[image_id]['file_name'])
     image = np.rint(image * dataset.limb * 255).astype(np.uint8)
-    result = model.predict(cv2.cvtColor(image, cv2.COLOR_GRAY2BGR), imgsz=imgsz, conf=.01,
+    result = model.predict(cv2.cvtColor(image, cv2.COLOR_GRAY2BGR), imgsz=imgsz, conf=confidence_floor,
                            iou=.7, max_det=100, retina_masks=True, device=0, half=True,
                            verbose=False, save=False, predictor=ChunkedSegmentationPredictor)[0]
     if result.masks is None:
@@ -39,7 +39,7 @@ def prediction(model, dataset, image_id, imgsz):
     return masks, scores
 
 
-def evaluate(model, dataset, ids, coco, imgsz, parameters, cache=None):
+def evaluate(model, dataset, ids, coco, imgsz, parameters, cache=None, confidence_floor=.01):
     rows = [[] for _ in parameters]
     for number, image_id in enumerate(ids, 1):
         cache_file = cache / f'{image_id}.npz' if cache else None
@@ -48,7 +48,7 @@ def evaluate(model, dataset, ids, coco, imgsz, parameters, cache=None):
                 masks = np.unpackbits(stored['masks'], axis=-1, count=dataset.limb.shape[1]).astype(bool)
                 scores = stored['scores']
         else:
-            masks, scores = prediction(model, dataset, image_id, imgsz)
+            masks, scores = prediction(model, dataset, image_id, imgsz, confidence_floor)
             if cache_file:
                 np.savez_compressed(cache_file, masks=np.packbits(masks, axis=-1), scores=scores)
         gt = sol.ground_truth_instances(dataset, image_id)

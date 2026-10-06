@@ -11,7 +11,7 @@ from experiment_yolo import digest, ROOT as YOLO_ROOT
 from instance_quality import matrix_metrics, summarize
 from yolo_refinement import refine_masks
 
-ROOT = Path('runs/yolo_refinement_20261003')
+ROOT = Path('runs/yolo_refinement_20261006')
 GRID = [dict(radius=r, threshold=t, confidence=c, min_area=128)
         for r in (8, 24) for t in (.5, .8) for c in (.1, .3)]
 
@@ -72,7 +72,7 @@ def main(smoke=False):
     def save():
         sol._write_json_atomically(state_path, state)
         if not smoke:
-            Path('reports/yolo_refinement_20261003.md').write_text(
+            Path('reports/yolo_refinement_20261006.md').write_text(
                 '# YOLO-guided U-Net boundary refinement\n\n'
                 'No additional training: intersect each dilated YOLO instance with retained U-Net '
                 'probabilities, then resolve overlap by YOLO confidence. Eight predeclared settings '
@@ -94,9 +94,9 @@ def main(smoke=False):
         save()
         rows = score(protocol['split']['audit'], [selected['parameters']])[0]
         measured = summarize(rows)
-        retained = json.loads(Path('runs/skeleton_merge_20261003/assessment.json').read_text())
-        paired = ex.paired_bootstrap(retained['merged_rows'], rows) if not smoke else None
-        promoted = bool(not smoke and measured['dataset_pq'] > retained['merged']['dataset_pq']
+        retained = json.loads((parent / 'assessment.json').read_text())
+        paired = ex.paired_bootstrap(retained['selected_rows'], rows) if not smoke else None
+        promoted = bool(not smoke and measured['dataset_pq'] > retained['summary']['dataset_pq']
                         and paired['observation_bootstrap_95ci'][0] > 0)
         state.update(assessment=measured, paired=paired, promoted=promoted,
                      decision='promoted_research_candidate' if promoted else 'not_promoted')
