@@ -93,7 +93,7 @@ def save_preview(root, tag, image_id, image, gt, pred, metrics, *, epoch=None, p
             if masks:
                 labels = np.zeros(background.shape, np.int16)
                 for index, mask in enumerate(masks, 1):
-                    labels[mask[region]] = index
+                    labels[mask[region]] = (index - 1) % 20 + 1
                 axis.imshow(np.ma.masked_equal(labels, 0), cmap='tab20', vmin=1, vmax=20, alpha=.65, interpolation='nearest')
             axis.set_title(('Full disk | ' if row == 0 else 'Detail | ') + title, fontsize=10)
             axis.axis('off')
@@ -161,6 +161,9 @@ def display_snapshot(run, preview='latest'):
     state = info['state']
     display(HTML(f'<h3>{html.escape(info["run"].name)}</h3><b>{html.escape(info["model"])}</b> · {html.escape(info["status"])}'))
     live = info['live']
+    if info['active']:
+        display(HTML(f'Epoch {live.get("epoch", "?")}/{live.get("epochs", "?")} '
+                     f'&middot; last progress update {max(0, int(time.time()-live["updated_at"]))} seconds ago'))
     if info['active'] and live.get('batches'):
         display(HTML(f'Epoch {live.get("epoch", "?")} · batch {live.get("batch", 0)}/{live["batches"]} · '
                      f'GPU reserved {live.get("gpu_gib", 0):.2f} GiB'))

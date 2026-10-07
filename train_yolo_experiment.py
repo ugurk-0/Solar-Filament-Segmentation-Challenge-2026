@@ -118,6 +118,8 @@ def main(args):
                 epoch = trainer.epoch + 1
                 if state['history'] and state['history'][-1]['epoch'] >= epoch:
                     return
+                write_live(root, 'monitoring PQ and rendering previews', epoch=epoch, epochs=epochs,
+                           best_epoch=state.get('best_epoch'))
                 candidate = YOLO(str(trainer.last))
                 state['trained_model_identity'] = model_identity(candidate, args.variant)
                 measured = summarize(evaluate(candidate, dataset, split['monitor'], coco, size,

@@ -105,6 +105,15 @@ This smoke test measures execution, not model quality. Full-resolution training 
 
 ## Explore the implementation
 
+Open [notebook.ipynb](notebook.ipynb) and run the two cells under **YOLO runs and prediction images**.
+Install `requirements-notebook.txt` in the notebook's selected Python environment first.
+The run selector follows active training, refreshes every 15 seconds, and displays epoch/batch progress,
+monitoring PQ, training losses, and full-disk/close-up comparisons of annotations and predictions.
+Choose an epoch in **Images** to compare progress. Completed historical runs include fixed calibration
+examples. The first cell also contains a saved local snapshot of the retained nano model.
+Training writes these artifacts independently; turning off auto-refresh does not stop training.
+See the [notebook validation report](reports/notebook_yolo_20261007.md).
+
 The [YOLO experiment guide](docs/YOLO_EXPERIMENT.md) explains pretrained instance segmentation, solar-support loss masking, GPU memory management, and PQ-based model selection. It uses a separate optional environment and leaves the existing submission pipeline available. The skeleton-merge research candidate has been assessed locally; its export integration is still pending.
 
 The [instance-quality experiment](docs/INSTANCE_QUALITY.md) adds a learned
