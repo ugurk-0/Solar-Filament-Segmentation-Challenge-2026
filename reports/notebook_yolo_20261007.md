@@ -64,3 +64,5 @@ of 24 epochs with the existing early-stopping rule. Its running state, preview
 images and eventual assessment are recorded in `runs/yolo11s_20261006/` and
 `reports/yolo11s_20261006.md`. This report records launch-time validation; consult
 the notebook's process-verified status for whether training is still active.
+
+First full-resolution epoch verified: monitoring mean PQ **0.1611** on 16 observations, finite recorded losses, and two epoch-1 prediction images. Epoch 2 was active at this check. This early monitoring value is not the final calibrated assessment.
