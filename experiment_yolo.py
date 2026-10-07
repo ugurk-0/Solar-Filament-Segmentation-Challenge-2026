@@ -39,7 +39,7 @@ def prediction(model, dataset, image_id, imgsz, confidence_floor=.01):
     return masks, scores
 
 
-def evaluate(model, dataset, ids, coco, imgsz, parameters, cache=None, confidence_floor=.01):
+def evaluate(model, dataset, ids, coco, imgsz, parameters, cache=None, confidence_floor=.01, observer=None):
     rows = [[] for _ in parameters]
     for number, image_id in enumerate(ids, 1):
         cache_file = cache / f'{image_id}.npz' if cache else None
@@ -52,11 +52,13 @@ def evaluate(model, dataset, ids, coco, imgsz, parameters, cache=None, confidenc
             if cache_file:
                 np.savez_compressed(cache_file, masks=np.packbits(masks, axis=-1), scores=scores)
         gt = sol.ground_truth_instances(dataset, image_id)
-        for target, setting in zip(rows, parameters):
+        for setting_index, (target, setting) in enumerate(zip(rows, parameters)):
             pred = disjoint_masks(masks, scores, dataset.limb, **setting)
             row = matrix_metrics(sol.instance_iou_matrix(pred, gt))
             row.update(image_id=image_id, file_name=coco.imgs[image_id]['file_name'])
             target.append(row)
+            if observer is not None and setting_index == 0:
+                observer(image_id, pred, gt, row)
         if len(ids) > 16 and number % 10 == 0:
             print(f'PQ evaluation {number}/{len(ids)}', flush=True)
     return rows

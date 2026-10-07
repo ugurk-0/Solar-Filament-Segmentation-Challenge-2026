@@ -16,6 +16,7 @@ from yolo_data import prepare_dataset
 from yolo_model_identity import model_identity
 from yolo_training import SupportSegmentationTrainer
 from yolo_recovery import record_protocol
+from yolo_dashboard import save_preview, write_live
 
 
 def main(args):
@@ -48,7 +49,7 @@ def main(args):
                     source_sha256={name: digest(name) for name in
                         ('train_yolo_experiment.py', 'experiment_yolo.py', 'yolo_model_identity.py',
                          'yolo_data.py', 'yolo_training.py', 'yolo_prediction.py', 'solution.py',
-                         'scripts/update_yolo_readme.py', 'yolo_recovery.py', cfg.train_json)})
+                         'scripts/update_yolo_readme.py', 'yolo_recovery.py', 'yolo_dashboard.py', cfg.train_json)})
     protocol_path, state_path = root / 'protocol.json', root / 'state.json'
     state = json.loads(state_path.read_text()) if state_path.exists() else dict(status='preparing', history=[])
     record_protocol(protocol_path, protocol, state, evaluation_only=args.evaluate_only)
@@ -59,6 +60,8 @@ def main(args):
 
     def save():
         sol._write_json_atomically(state_path, state)
+        write_live(root, state['status'], epoch=state['history'][-1]['epoch'] if state['history'] else 0,
+                   epochs=epochs, best_epoch=state.get('best_epoch'))
         if not args.smoke:
             report.write_text(
                 f'# YOLO11{args.variant} follow-up experiment\n\n'
@@ -80,6 +83,16 @@ def main(args):
         data_dir = root / 'dataset' if args.smoke or not args.dataset_cache else Path(args.dataset_cache)
         data = prepare_dataset(coco, train, split['monitor'], cfg, data_dir)
         _, dataset = sol.make_loader(coco, validation, cfg, False)
+        preview_ids = set(split['monitor'][:2])
+
+        def preview_observer(epoch):
+            def render(image_id, pred, gt, row):
+                if image_id in preview_ids:
+                    image = sol.load_image(Path(cfg.data_dir) / 'train_images' / coco.imgs[image_id]['file_name'])
+                    save_preview(root, f'epoch_{epoch:03d}', image_id, image, gt, pred, row,
+                                 epoch=epoch, phase='monitor', parameters=dict(confidence=.1, min_area=128))
+            return render
+
         selected_checkpoint = root / 'best_pq.pt'
         if not state.get('training_complete'):
             if (root / 'training/weights/last.pt').exists():
@@ -88,7 +101,8 @@ def main(args):
             # will initialize training; evaluate a separate model instance.
             control_model = YOLO(str(initial))
             control = summarize(evaluate(control_model, dataset, split['monitor'], coco, size,
-                                [dict(confidence=.1, min_area=128)], confidence_floor=.1)[0])
+                                [dict(confidence=.1, min_area=128)], confidence_floor=.1,
+                                observer=preview_observer(0))[0])
             del control_model
             gc.collect()
             torch.cuda.empty_cache()
@@ -107,7 +121,8 @@ def main(args):
                 candidate = YOLO(str(trainer.last))
                 state['trained_model_identity'] = model_identity(candidate, args.variant)
                 measured = summarize(evaluate(candidate, dataset, split['monitor'], coco, size,
-                                      [dict(confidence=.1, min_area=128)], confidence_floor=.1)[0])
+                                      [dict(confidence=.1, min_area=128)], confidence_floor=.1,
+                                      observer=preview_observer(epoch))[0])
                 if measured['mean_pq'] > best[0]:
                     if measured['mean_pq'] > best[0] + .001:
                         last_improved[0] = epoch
@@ -125,6 +140,20 @@ def main(args):
                     trainer.stop = True
 
             model.add_callback('on_fit_epoch_end', monitor)
+            progress = dict(epoch=-1, batch=0, last_write=0.)
+
+            def heartbeat(trainer):
+                epoch = trainer.epoch + 1
+                if progress['epoch'] != epoch:
+                    progress.update(epoch=epoch, batch=0, last_write=0.)
+                progress['batch'] += 1
+                if time.monotonic() - progress['last_write'] >= 15:
+                    write_live(root, 'training', epoch=epoch, epochs=epochs, batch=progress['batch'],
+                               batches=len(trainer.train_loader), gpu_gib=torch.cuda.memory_reserved()/2**30,
+                               best_epoch=state.get('best_epoch'))
+                    progress['last_write'] = time.monotonic()
+
+            model.add_callback('on_train_batch_end', heartbeat)
             model.train(trainer=SupportSegmentationTrainer, data=str(data.resolve()), epochs=epochs,
                         imgsz=size, batch=args.batch, nbs=8, workers=0, cache=False, device=0,
                         optimizer='AdamW', lr0=args.lr0, lrf=.05, warmup_epochs=1,
