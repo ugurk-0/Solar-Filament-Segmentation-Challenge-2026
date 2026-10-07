@@ -169,6 +169,41 @@ new run, pass its run directory with `--baseline`.
 
 ## Reproduce
 
+### Watch runs in the notebook
+
+Install `requirements-notebook.txt` in the selected notebook kernel, then execute
+the two cells under **YOLO runs and prediction images** in `notebook.ipynb`.
+The static view includes the retained nano model's local curves and actual cached
+calibration predictions. The widget selects the active run automatically and
+refreshes every 15 seconds; a dropdown selects a different run or preview epoch.
+
+`train_yolo_experiment.py` writes `live.json` with process identity and batch progress,
+and its existing monitoring pass saves two fixed observations per epoch. No second
+prediction pass is needed. `preview_manifest.json` records the image IDs, epoch,
+thresholds and native-resolution per-image metrics. PNGs show full-disk and detail
+views of the image, annotations and predicted instances. These examples illustrate
+behavior and do not replace the aggregate assessment.
+
+The display module, `yolo_dashboard.py`, loads only status, CSV and PNG artifacts;
+it does not import Torch or load another model onto the GPU. Its process check
+avoids calling an abandoned run active. Stop **Auto refresh** to pause the view;
+this does not stop the separate training process. Re-executing the cell replaces
+the earlier refresh task.
+
+For completed historical runs, rebuild the fixed calibration examples from their
+checkpoint-verified prediction caches (no GPU inference):
+
+```powershell
+python -m scripts.build_yolo_previews runs/yolo11n_20261003 runs/yolo11n_finetune_20261006
+```
+
+Use the YOLO environment for this cache conversion. The dashboard itself uses
+the notebook environment. Run only one training/evaluation GPU job at a time on
+the 6 GB development GPU. Local images remain under `runs/`; Git strips notebook
+outputs and does not publish trained weights or prediction caches.
+
+### Environment and commands
+
 Use a separate Python 3.12 environment so the optional YOLO dependencies do not
 alter the established U-Net environment. Install a CUDA-enabled PyTorch build
 compatible with the pinned requirements and local GPU before training.
