@@ -4,6 +4,57 @@ import shutil
 import nbformat as nbf
 
 
+def yolo_cells():
+    """Self-contained views; no training or GPU imports in the notebook UI."""
+    sources = [
+        ('markdown', '''## YOLO runs and prediction images
+
+Run these two cells from the repository root in order. Install
+`requirements-notebook.txt` in the selected notebook kernel first.
+The first cell shows the retained YOLO baseline, including actual cached predictions.
+The second follows an active run automatically; use **Run** to compare experiments
+and **Images** to inspect individual epochs. **Auto refresh** updates every 15 seconds.
+Turning it off stops refreshing the display; training continues in its own process.
+
+Each preview shows the H-alpha image, annotated instances, and predicted instances,
+with both a full disk and a close-up. Colors distinguish instances within each panel;
+matching colors across panels do not imply a matched pair. Images are reduced only for
+display; PQ is computed with full-resolution masks. Fixed monitoring examples appear
+after each epoch. Historical runs show two fixed calibration examples instead.
+
+The curves show **monitoring PQ**, used to select a checkpoint. The assessment table
+uses the reused 85-observation assessment split and is not a Kaggle leaderboard score.
+Run artifacts live under `runs/`; a fresh clone has no trained models or preview images.
+The later cells retain the earlier U-Net experiments for comparison.'''),
+        ('code', '''from pathlib import Path
+assert Path("yolo_dashboard.py").is_file(), "Start the notebook kernel in the repository root"
+from yolo_dashboard import display_snapshot, dashboard
+_ = display_snapshot(Path("runs/yolo11n_20261003"))'''),
+        ('code', '''YOLO_PANEL = dashboard(Path("runs"), auto_refresh=True, interval=15)
+# YOLO_PANEL.close()  # optional: stop this display's automatic refresh'''),
+    ]
+    return [getattr(nbf.v4, f'new_{kind}_cell')(source,
+            metadata={'tags': [f'yolo-dashboard-{index}']})
+            for index, (kind, source) in enumerate(sources)]
+
+
+def refresh_yolo_view(path='notebook.ipynb'):
+    """Update only dashboard cells, preserving other cells and their outputs."""
+    notebook = nbf.read(path, as_version=4)
+    notebook.cells = [cell for cell in notebook.cells
+                      if not any(tag.startswith('yolo-dashboard-')
+                                 for tag in cell.metadata.get('tags', []))]
+    notebook.cells[0].source = notebook.cells[0].source.replace(
+        '# Solar filament segmentation: PQ experiment',
+        '# Solar filament segmentation: YOLO runs and PQ experiments')
+    summary = '\n\n**Current view:** live YOLO status, monitoring curves, and instance prediction images are below. The later U-Net sections document earlier experiments.'
+    if '**Current view:**' not in notebook.cells[0].source:
+        notebook.cells[0].source += summary
+    notebook.cells[1:1] = yolo_cells()
+    nbf.validate(notebook)
+    nbf.write(notebook, path)
+
+
 def main():
     backup = Path("runs/pq_research_20260926/notebook_before.ipynb")
     if not backup.exists():
@@ -279,6 +330,7 @@ winning performance follows from it. See `reports/skills_review.md` for the skil
         "language_info": {"name": "python", "version": "3.12"}})
     nbf.validate(notebook)
     nbf.write(notebook, "notebook.ipynb")
+    refresh_yolo_view()
 
 
 if __name__ == "__main__":
