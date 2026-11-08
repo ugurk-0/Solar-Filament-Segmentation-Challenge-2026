@@ -13,7 +13,7 @@ import ultralytics
 from ultralytics import YOLO
 import solution as sol
 import pq_experiment as ex
-from instance_quality import matrix_metrics, summarize
+from instance_metrics import matrix_metrics, summarize
 from yolo_data import prepare_dataset, disjoint_masks
 from yolo_training import SupportSegmentationTrainer
 from yolo_prediction import ChunkedSegmentationPredictor

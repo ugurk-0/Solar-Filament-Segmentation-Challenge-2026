@@ -1,3 +1,5 @@
+> Historical experiment note. Its rejected implementation was removed in the [final cleanup](../reports/final_submission_20261108.md). Commands below document the historical run and are not current entry points.
+
 # Instance-quality model
 
 The existing U-Net predicts foreground probabilities. High probability alone
@@ -94,9 +96,9 @@ reused in earlier research, so confidence intervals remain exploratory.
 
 ## Files and outputs
 
-- [instance_quality.py](../instance_quality.py): feature extraction, CNN, filtering,
+- instance_quality.py (`instance_quality.py`, retired): feature extraction, CNN, filtering,
   and cached-IoU evaluation.
-- [experiment_instance_quality.py](../experiment_instance_quality.py): preparation,
+- experiment_instance_quality.py (`experiment_instance_quality.py`, retired): preparation,
   training, checkpoint selection, calibration, paired evaluation, and gated export.
 - `runs/instance_quality_20260929/`: source/checkpoint signatures, cached features,
   saved models, optimizer state, and measurement JSONs.

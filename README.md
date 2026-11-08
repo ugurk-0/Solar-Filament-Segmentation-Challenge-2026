@@ -4,141 +4,68 @@ Used Codex GPT 6 Astra to assist me in this work.
 
 [![Regression tests](https://github.com/ugurk-0/Solar-Filament-Segmentation-Challenge-2026/actions/workflows/tests.yml/badge.svg)](https://github.com/ugurk-0/Solar-Filament-Segmentation-Challenge-2026/actions/workflows/tests.yml)
 
-A PyTorch pipeline that identifies individual solar filaments in 2048 × 2048 GONG H-alpha images. Built for the [Solar Filament Segmentation Challenge 2026](https://www.kaggle.com/competitions/filament-segmentation-2026), it covers training, instance extraction, Panoptic Quality (PQ) evaluation, and competition CSV export.
+Instance segmentation of solar filaments in 2048 ? 2048 GONG H-alpha observations. The final pipeline uses **YOLO11n-seg**, grouped validation, annotation-support-aware training, and checked COCO RLE export.
 
-**Best retained research result:** **0.3199 mean PQ / 0.3319 pooled PQ**, using YOLO11n-seg (epoch 17 selected by monitoring PQ). This is an exploratory comparison on 85 reused local observations, not a leaderboard score. The last user-reported Kaggle score remains **0.24** for an earlier submission. See the [measured result](reports/yolo11n_20261003.md) and [October 6 audit](reports/yolo_audit_20261006.md).
+**Submitted to Kaggle on 8 November 2026:** submission **58139775**, 1,036 instances over 180 test images. **Public score: 0.28**, up from the previous API-verified **0.23**. See [verified status](reports/final_submission_status.json) and the [submission report](reports/final_submission_20261108.md).
 
-![Historical U-Net assessment results before the October experiments](docs/assets/results.png)
+## Selected model
 
-## Engineering highlights
+| Item | Retained configuration |
+|---|---|
+| Model / selected epoch | YOLO11n-seg / 17 |
+| Input / output | 1536-pixel inference / native 2048-pixel masks |
+| Confidence / minimum area | 0.50 / 128 pixels |
+| Instance overlap | Confidence-ordered ownership; disjoint masks |
+| TTA | Disabled, matching validation |
+| Local mean / pooled PQ | **0.3199 / 0.3319** |
 
-- Group duplicate annotator records by physical observation to prevent split leakage; separate epoch monitoring, calibration, and assessment subsets.
-- Evaluate instance PQ instead of relying on training loss. Reject follow-up runs when monitored PQ fails to improve.
-- Train a ResNet-18 U-Net with attention gates, a residual dilated bottleneck, and BCE + Dice + clDice losses inside the annotation support.
-- Keep one implementation behind CLI and notebooks, pinned dependencies, regression tests in CI, epoch previews, and validated COCO RLE exports.
-
-## Results and decisions
-
-Methods below are grouped by the evidence available. Assessment values use the same 85-observation research subset, without TTA; monitoring/calibration and smoke values are explicitly labeled and are not comparable to assessment scores. No new leaderboard result is inferred from them.
-
-| Method / process | Mean assessment PQ | Pooled assessment PQ | Result and evidence |
-|---|---:|---:|---|
-| Original checkpoint + distance watershed | 0.0706 | 0.0706 | Fragmented filaments; replaced |
-| Original checkpoint + calibrated components | 0.2073 | 0.2177 | Large improvement from instance extraction |
-| Round-1 guided fine-tuning | 0.2454 | 0.2511 | Improved over original calibrated model |
-| Round-5 guided fine-tuning | 0.2632 | 0.2626 | Retained neural checkpoint; [training report](reports/pq_experiment_20260926.md) |
-| Stricter confidence/size filtering, no closing | 0.2714 | 0.2710 | Retained components reference; [audit](reports/reference_notebook_review_20260927.md) |
-| Less clDice, more Dice | 0.2736 | 0.2714 | Did not meet promotion gate; [batch report](reports/autoupgrade_20260928.md) |
-| More random training crops | 0.2702 | 0.2650 | Rejected; same batch report |
-| Annotation-medoid training | 0.2654 | 0.2629 | Rejected; [report](reports/annotation_medoid_20260929.md) |
-| Inference windows 512/768/1024 | 0.2714 | 0.2710 | Existing 1024 configuration selected; [report](reports/window_context_20260929.md) |
-| Instance-quality CNN filter | 0.2618 | 0.2694 | Lost too many correct detections; [method](docs/INSTANCE_QUALITY.md) |
-| Confident-seed mask growth, six variants | — | — | Best calibration 0.2639 vs baseline 0.2700; no growth variant advanced; [report](docs/SEEDED_INSTANCES.md) |
-| Radial illumination correction + fine-tuning | 0.2821 | 0.2707 | Mean gain uncertain, pooled PQ lower; not promoted; [research](docs/SOLAR_CV_RESEARCH.md) |
-| Observation-balanced sampling + spine auxiliary loss | 0.2679 | 0.2680 | Selected spine arm rejected on assessment; control monitor 0.3217, spine monitor 0.3229; [report](reports/spine_learning_20261001.md) |
-| CLAHE + short fine-tuning | — | — | Smoke-only training: monitoring 0.1823 vs raw 0.3138; no full run; [report](reports/clahe_20261002.md) |
-| Instance-embedding head | — | — | Smoke execution only; no full assessment; [runner](experiment_instance_embeddings.py) |
-| Skeleton-endpoint merging | 0.2891 | 0.2878 | Earlier promoted candidate; superseded by YOLO nano; [report](reports/skeleton_merge_20261003.md) |
-| **YOLO11n, batch 2, 20 epochs** | **0.3199** | **0.3319** | **Retained best**; epoch 17 selected; [report](reports/yolo11n_20261003.md) |
-| Nano batch 1, 50-epoch budget (mislabeled ?11m?) | 0.3164 | 0.3320 | Stopped at 17 epochs; selected epoch 11; no medium model was trained; [corrected report](reports/yolo11m_20261003.md) |
-| YOLO11n lower-rate fine-tuning | 0.3173 | 0.3345 | Did not pass paired assessment gate; [report](reports/yolo11n_finetune_20261006.md) |
-| YOLO11s, batch 1, 24-epoch budget | 0.2917 | 0.2977 | Did not pass paired assessment gate; [report](reports/yolo11s_20261006.md) |
-| YOLO instances + retained U-Net boundaries | ? | ? | Rejected on calibration; no new training or assessment; [report](reports/yolo_refinement_20261006.md) |
-
-Skeleton merging used endpoint distance at most 50 pixels, direction cosine at least 0.8, and mean gap probability at least 0.3, selected on 40 calibration observations. It gained 0.0177 mean PQ over the components reference, with paired observation-bootstrap 95% interval **[0.0061, 0.0310]**. Reuse of the assessment set limits the interpretation. The current regression suite passes 69 tests, including the optional YOLO checks in its separate environment. **PQ 0.60 remains a target.**
-
-### Historical training comparison
-
-These four historical rows use threshold 0.65 and minimum area 200, calibrated on 40 separate observations.
-
-| Configuration | Mean PQ | Dataset PQ | TP | FP | FN |
-|---|---:|---:|---:|---:|---:|
-| Original checkpoint, watershed | 0.0706 | 0.0706 | 172 | 2,099 | 476 |
-| Original checkpoint, calibrated components | 0.2073 | 0.2177 | 319 | 851 | 329 |
-| Round 1, calibrated components | 0.2454 | 0.2511 | 322 | 671 | 326 |
-| **Round 5, calibrated components** | **0.2632** | **0.2626** | 305 | 536 | 343 |
-
-The largest improvement came from reducing fragmented instances through post-processing. Round 5 reduced the BCE positive-weight cap to 1.0 and the filament-centered crop probability to 50%; other crops are uniformly sampled and can still contain filaments. It reduced false positives while missing more true instances, yielding higher overall PQ.
-
-Against the original calibrated checkpoint, Round 5 gained **0.0559 mean PQ**, with a paired observation-bootstrap 95% interval of **[0.0325, 0.0812]**. The assessment split was reused across rounds, so it is not an untouched final test. Intervals are conditional on one split and seed; architecture and loss contributions have not been isolated by ablation.
-
-See the [experiment report](reports/pq_experiment_20260926.md) and [versioned metrics snapshot](reports/results_summary.json). Regenerate the figure with `python scripts/build_results_figure.py`.
-
-The [automatic improvement report](reports/autoupgrade_20260928.md) records each subsequent hypothesis, configuration, epoch result, and keep/reject decision. `python autoupgrade.py` runs the current controlled batch after `python refine_postprocessing.py` completes. It preserves prior runs, validates exports, and screens candidates on fixed monitoring observations before further assessment.
-
-## Pipeline
+Epoch selection uses 16 monitoring observations; confidence and area are calibrated on 40 different observations. The assessment uses 85 reused research observations. These local scores are not leaderboard scores. Against the promoted U-Net/skeleton baseline, paired mean PQ improved by 0.0307, with bootstrap 95% interval [0.0051, 0.0566]. See [the measured experiment](reports/yolo11n_20261003.md).
 
 ```mermaid
 flowchart LR
-    A[Images and polygon labels] --> B[Physical-observation split]
-    B --> C[Aligned crops and support mask]
-    C --> D[Attention U-Net]
-    D --> E[Sliding-window probabilities]
-    E --> F[Connected components]
-    F --> G[Optional skeleton merging]
-    G --> I[Instance PQ]
-    F --> H[COCO RLE CSV]
+    A[H-alpha image] --> B[Annotation support and 1536-pixel input]
+    B --> C[YOLO11n instance segmentation]
+    C --> D[Native masks and calibrated confidence]
+    D --> E[Non-overlap ownership]
+    E --> F[Validated COCO RLE CSV]
 ```
 
-Training uses AMP, gradient accumulation, cosine scheduling, and EMA weights. Round 5 epoch 3 is selected. The original submission used eight-way dihedral TTA, unlike its local assessment. The later candidate in `runs/pq_refinement_20260928_fixed/submission.csv` uses no TTA, matching its local assessment configuration. **Local PQ is not a Kaggle leaderboard score.**
+## Reproduce and inspect
 
-## Quick start
-
-Use Python 3.12 and a virtual environment. Install dependencies and run the synthetic regression suite (no dataset or trained weights required):
+Use Python 3.12 with a CUDA-compatible PyTorch installation in a separate environment:
 
 ```bash
-git clone https://github.com/ugurk-0/Solar-Filament-Segmentation-Challenge-2026.git
-cd Solar-Filament-Segmentation-Challenge-2026
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-yolo.txt
 python -m pytest tests -q
+python submit_yolo.py --output submissions/reproduced
 ```
 
-Download the competition data separately, then run a small execution check:
+Export requires the retained local checkpoint `runs/yolo11n_20261003/best_pq.pt`, its selection/protocol files, and the competition test images. Datasets, trained weights, submissions and large run outputs are not bundled. A fresh clone can run synthetic tests and train from scratch; it cannot immediately reproduce the CSV without those artifacts.
 
-```bash
-python solution.py train --fold 0 --epochs 2 --limit 8 --no-tta --data-dir MAGFiLO_1.0_Kaggle_2026/train --work-dir runs/smoke_fold0
-```
+For training and data preparation, see [the YOLO guide](docs/YOLO_EXPERIMENT.md). Open [notebook.ipynb](notebook.ipynb) to inspect the selected model's epoch curves and saved predictions. Install `requirements-notebook.txt` for its dashboard. The notebook displays artifacts and does not silently start training or submit to Kaggle.
 
-This smoke test measures execution, not model quality. Full-resolution training benefits from a CUDA GPU. See [reproduction instructions](docs/REPRODUCING.md) for data layout, training, evaluation, checkpoint selection, and export.
+## Engineering and evidence
 
-**Reproducibility boundary:** datasets, trained checkpoints, and large run outputs are not bundled. Historical warm-start experiments require local checkpoints. A fresh clone can run tests and train from scratch, but cannot immediately recreate the reported CSV.
+- Physical-observation grouping prevents duplicate annotator records leaking across splits.
+- Epoch selection uses instance PQ, rather than training loss or detector mAP alone.
+- Native mask geometry, annotation support, model identity, non-overlap ownership and RLE round trips are checked.
+- The final CSV is tied to checkpoint, source, settings and image hashes.
+- The retained regression suite passes **40 tests**. Historical method-only tests were removed with their retired implementations.
 
-## Explore the implementation
-
-Open [notebook.ipynb](notebook.ipynb) and run the two cells under **YOLO runs and prediction images**.
-Install `requirements-notebook.txt` in the notebook's selected Python environment first.
-The run selector follows active training, refreshes every 15 seconds, and displays epoch/batch progress,
-monitoring PQ, training losses, and full-disk/close-up comparisons of annotations and predictions.
-Choose an epoch in **Images** to compare progress. Completed historical runs include fixed calibration
-examples. The first cell also contains a saved local snapshot of the retained nano model.
-Training writes these artifacts independently; turning off auto-refresh does not stop training.
-See the [notebook validation report](reports/notebook_yolo_20261007.md).
-
-The [YOLO experiment guide](docs/YOLO_EXPERIMENT.md) explains pretrained instance segmentation, solar-support loss masking, GPU memory management, and PQ-based model selection. It uses a separate optional environment and leaves the existing submission pipeline available. The skeleton-merge research candidate has been assessed locally; its export integration is still pending.
-
-The [instance-quality experiment](docs/INSTANCE_QUALITY.md) adds a learned
-second-stage filter to the existing U-Net. It tests whether instance-level
-quality prediction improves PQ beyond pixel-probability thresholds; production
-defaults remain unchanged until a candidate passes paired assessment.
-
-Read [how the pipeline produces the submission CSV](docs/PIPELINE_AND_CSV.md)
-for a technical walkthrough, an explanation of the instance IDs and COCO RLE
-strings, and a command to decode and audit a real export.
-
-| Entry point | Purpose |
+| Entry point | Role |
 |---|---|
-| [solution.py](solution.py) | Model, training, metrics, inference, tuning, and export |
-| [notebook.ipynb](notebook.ipynb) | Stages, epoch curves, and previews when local artifacts exist |
-| [pq_experiment.py](pq_experiment.py) | Calibration and paired bootstrap comparisons |
-| [tests/](tests/) | Metric edge cases, masks, TTA, training, and notebook export |
-| [Kaggle guide](kaggle/README.md) | Portable notebook generation and upload |
-| [Technical report](main.tex) | Method, measured results, and limitations |
-| [Repository map](docs/REPOSITORY.md) | Supporting scripts and artifact locations |
+| [submit_yolo.py](submit_yolo.py) | Reproduce the validated final CSV |
+| [experiment_yolo.py](experiment_yolo.py) | Winning experiment protocol |
+| [train_yolo_experiment.py](train_yolo_experiment.py) | Identity-checked training runner |
+| [yolo_training.py](yolo_training.py), [yolo_prediction.py](yolo_prediction.py) | Support-aware training and native mask reconstruction |
+| [instance_metrics.py](instance_metrics.py) | Shared cached-IoU scoring |
+| [solution.py](solution.py), [skeleton_merge.py](skeleton_merge.py) | Retained historical U-Net baseline and promoted post-processing |
+| [reports/](reports/) | Measured results, including rejected experiments |
 
-Git strips large notebook outputs. The README figure and metrics snapshot provide a lightweight public record. The portable Kaggle notebook has been checked locally but has not been executed on Kaggle.
+Rejected experimental implementations have been removed from the active codebase. Their results remain in the [cleanup ledger](reports/final_submission_20261108.md), reports, and Git history. The original [LaTeX report](main.tex) describes the historical U-Net work; the final model is documented in the YOLO and submission reports.
 
-## Limitations
+## Limits
 
-The annotation support uses an approximate longitude mask. Grouping removes duplicate-observation leakage but does not eliminate temporal correlation. Further work requires an untouched temporal holdout, multiple seeds/folds, and evaluation of the exact TTA submission configuration. The 0.24 competition baseline is user-reported; the new candidate has no measured Kaggle score.
+The assessment split was reused during research; there is no untouched final local estimate or multi-seed/fold confirmation. The support geometry is approximate and grouping does not eliminate temporal correlation. No unseen leaderboard score is inferred from local results.
 
-Data originate from MAGFiLO and NSO/GONG; obtain them through the competition and follow its data terms. Data and trained weights are not redistributed here.
+Data originate from MAGFiLO and NSO/GONG and remain subject to the competition terms. Ultralytics is an optional dependency under its published license; see the YOLO guide. Data and trained weights are not redistributed here.

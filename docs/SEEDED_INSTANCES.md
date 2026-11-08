@@ -1,3 +1,5 @@
+> Historical experiment note. Its rejected implementation was removed in the [final cleanup](../reports/final_submission_20261108.md). Commands below document the historical run and are not current entry points.
+
 # PQ and seeded mask growth
 
 Panoptic Quality (PQ) evaluates individual filament masks. Predicted and annotated
@@ -58,8 +60,8 @@ preserved. The experiment does not automatically replace production defaults or
 export a submission. There is no training change, so retraining the unchanged
 U-Net is unnecessary for this comparison.
 
-Implementation: [seeded_instances.py](../seeded_instances.py) and
-[experiment_seeded_instances.py](../experiment_seeded_instances.py).
+Implementation: seeded_instances.py (`seeded_instances.py`, retired) and
+experiment_seeded_instances.py (`experiment_seeded_instances.py`, retired).
 
 ## Completed result: September 30, 2026
 

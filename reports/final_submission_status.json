@@ -1,0 +1,16 @@
+{
+  "competition": "filament-segmentation-2026",
+  "submission_id": 58139775,
+  "status": "COMPLETE",
+  "public_score": 0.28,
+  "previous_submission_id": 56607737,
+  "previous_public_score": 0.23,
+  "csv_sha256": "cb33be0a74b270c3a14c77f686159bbd88beb8896f4e801a16f8afe842fe404e",
+  "csv": "submissions/final_20261108/submission.csv",
+  "n_images": 180,
+  "n_instances": 1036,
+  "local_mean_pq": 0.31985361357978387,
+  "local_pooled_pq": 0.3319385518494783,
+  "score_verified_via": "Kaggle competition submissions API",
+  "submitted_at_utc": "2026-11-08T20:00:57.023000Z"
+}

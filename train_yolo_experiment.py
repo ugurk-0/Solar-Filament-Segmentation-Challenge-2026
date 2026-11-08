@@ -11,7 +11,7 @@ from ultralytics import YOLO
 import solution as sol
 import pq_experiment as ex
 from experiment_yolo import digest, evaluate
-from instance_quality import summarize
+from instance_metrics import summarize
 from yolo_data import prepare_dataset
 from yolo_model_identity import model_identity
 from yolo_training import SupportSegmentationTrainer

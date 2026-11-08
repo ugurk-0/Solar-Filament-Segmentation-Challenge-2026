@@ -100,32 +100,9 @@ The assessment set has been reused across experiments. Its score is exploratory
 local evidence, not an unbiased final test or a Kaggle leaderboard result.
 This runner does not submit anything to Kaggle or replace a submission CSV.
 
-## Optional refinement without more training
+## Rejected refinement
 
-`experiment_yolo_refinement.py` tests whether the retained U-Net can repair
-YOLO mask boundaries. For each YOLO instance, dilate its mask locally, intersect
-that neighborhood with the U-Net foreground probability threshold, apply the
-solar support, then assign overlapping pixels by YOLO confidence. It preserves
-the YOLO object's identity and cannot invent a new detection far from a proposal.
-
-The grid was specified during YOLO training, before its assessment: dilation
-radii 8/24 native pixels, U-Net thresholds 0.5/0.8, YOLO confidences 0.1/0.3,
-minimum area 128. These eight settings reuse cached full-resolution predictions.
-Only a setting with calibration mean PQ more than 0.005 above calibrated direct
-YOLO **and** higher pooled PQ advances to assessment. The final promotion gate
-compares against the retained direct YOLO candidate. This
-limits extra compute and avoids reporting a calibration-only gain as an
-assessment improvement.
-
-```powershell
-python experiment_yolo_refinement.py --smoke
-python experiment_yolo_refinement.py
-```
-
-Run these after the corresponding direct YOLO experiment finishes. Outputs go
-under `runs/yolo_refinement_20261006/` and the tracked report records the decision.
-The completed trial was rejected: best calibration mean PQ 0.2865 versus
-0.2854, but pooled PQ fell from 0.2889 to 0.2804. No assessment was performed.
+The YOLO/U-Net refinement experiment failed its calibration gate and its implementation was removed. See [the historical result](../reports/yolo_refinement_20261006.md).
 
 ## Continuing training from the retained checkpoint
 

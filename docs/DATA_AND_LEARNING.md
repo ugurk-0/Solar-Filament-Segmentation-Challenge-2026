@@ -1,3 +1,5 @@
+> Historical experiment note. Its rejected implementation was removed in the [final cleanup](../reports/final_submission_20261108.md). Commands below document the historical run and are not current entry points.
+
 # Learning from the available annotations
 
 Audit and controlled experiment: 1 October 2026.
@@ -87,8 +89,8 @@ python experiment_spine_learning.py
 The focused checks and both two-epoch smoke arms completed successfully. The
 smoke scores are execution checks, not performance estimates.
 
-- [Target construction and observation sampling](../spine_learning.py)
-- [Training and assessment runner](../experiment_spine_learning.py)
+- Target construction and observation sampling (`spine_learning.py`, retired)
+- Training and assessment runner (`experiment_spine_learning.py`, retired)
 - [Live results](../reports/spine_learning_20261001.md)
 - Checkpoints, source/annotation hashes and fixed partitions:
   `runs/spine_learning_20261001/`

@@ -1,3 +1,5 @@
+> Historical experiment note. Its rejected implementation was removed in the [final cleanup](../reports/final_submission_20261108.md). Commands below document the historical run and are not current entry points.
+
 # Methods for noisy, projected solar-filament images
 
 Research and implementation review: 30 September 2026. The retained local mean
@@ -62,9 +64,9 @@ python experiment_solar_preprocessing.py --smoke
 python experiment_solar_preprocessing.py
 ```
 
-Files changed: [solar_preprocessing.py](../solar_preprocessing.py),
-[experiment_solar_preprocessing.py](../experiment_solar_preprocessing.py),
-[focused tests](../tests/test_solar_preprocessing.py), and this research note.
+Files changed: solar_preprocessing.py (`solar_preprocessing.py`, retired),
+experiment_solar_preprocessing.py (`experiment_solar_preprocessing.py`, retired),
+focused tests (`test_solar_preprocessing.py`, retired), and this research note.
 The experiment uses a process-local dataset subclass, leaving production
 `solution.py` unchanged. Corrected checkpoints require that subclass or explicit
 `radial_correct(image, radius=950, strength=0.5)` before `predict_full`;
